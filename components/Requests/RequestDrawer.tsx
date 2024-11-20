@@ -24,55 +24,7 @@ import { Label } from "../ui/label";
 import { ScrollArea } from "../ui/scroll-area";
 import { RequestCarousel } from "./RequestCarousel";
 
-const data = [
-  {
-    goal: 400,
-  },
-  {
-    goal: 300,
-  },
-  {
-    goal: 200,
-  },
-  {
-    goal: 300,
-  },
-  {
-    goal: 200,
-  },
-  {
-    goal: 278,
-  },
-  {
-    goal: 189,
-  },
-  {
-    goal: 239,
-  },
-  {
-    goal: 300,
-  },
-  {
-    goal: 200,
-  },
-  {
-    goal: 278,
-  },
-  {
-    goal: 189,
-  },
-  {
-    goal: 349,
-  },
-];
-
 export function RequestDrawer() {
-  //   const [goal, setGoal] = React.useState(350);
-
-  //   function onClick(adjustment: number) {
-  //     setGoal(Math.max(200, Math.min(400, goal + adjustment)));
-  //   }
-
   return (
     <Drawer>
       <DrawerTrigger asChild>
@@ -82,14 +34,17 @@ export function RequestDrawer() {
         <div className="mx-auto w-full max-w-5xl h-[500px]">
           <DrawerHeader>
             <DrawerTitle>New Request</DrawerTitle>
-            <DrawerDescription>Create a new request</DrawerDescription>
+            <DrawerDescription>New Request #: 00000001</DrawerDescription>
           </DrawerHeader>
 
           <RequestCarousel />
 
           <DrawerFooter>
             <div className="container flex flex-row">
-              <Button className="mx-auto w-full max-w-60">Submit</Button>
+              <Button className="mx-auto w-full max-w-60">Save Current</Button>
+              <DrawerClose asChild>
+                <Button className="mx-auto w-full max-w-60">Submit</Button>
+              </DrawerClose>
               <DrawerClose asChild>
                 <Button variant="outline" className="mx-auto w-full max-w-60">
                   Cancel

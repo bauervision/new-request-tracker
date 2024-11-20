@@ -1,10 +1,13 @@
+import CustomDateEditor from "./DateEditor";
+import DateRenderer from "./DateRenderer";
+
 export const rawData = [
   {
     product: "HPE EL8000 5U CTO Front Cabling Chassis",
     order: 10001,
     price: 64950,
     shipped: true,
-    month: "June",
+    delivery: new Date("2024-12-25"),
     status: "Pricing",
   },
   {
@@ -12,7 +15,7 @@ export const rawData = [
     order: 10002,
     price: 33850,
     shipped: false,
-    month: "October",
+    delivery: new Date("2025-10-23"),
     status: "Pricing",
   },
   {
@@ -20,7 +23,7 @@ export const rawData = [
     order: 10003,
     price: 29600,
     shipped: false,
-    month: "August",
+    delivery: new Date("2025-08-28"),
     status: "New",
   },
   {
@@ -28,7 +31,7 @@ export const rawData = [
     order: 10004,
     price: 48890,
     shipped: true,
-    month: "February",
+    delivery: new Date("2025-02-14"),
     status: "Complete",
   },
   {
@@ -36,7 +39,7 @@ export const rawData = [
     order: 10005,
     price: 15774,
     shipped: false,
-    month: "January",
+    delivery: new Date("2025-01-10"),
     status: "Complete",
   },
   {
@@ -44,7 +47,7 @@ export const rawData = [
     order: 10006,
     price: 18460,
     shipped: false,
-    month: "July",
+    delivery: new Date("2025-07-04"),
     status: "New",
   },
   {
@@ -52,7 +55,7 @@ export const rawData = [
     order: 10007,
     price: 33795,
     shipped: true,
-    month: "September",
+    delivery: new Date("2024-09-10"),
     status: "Proposal Submitted",
   },
   {
@@ -60,7 +63,7 @@ export const rawData = [
     order: 10008,
     price: 175720,
     shipped: false,
-    month: "December",
+    delivery: new Date("2024-12-25"),
     status: "Proposal Submitted",
   },
   {
@@ -68,7 +71,7 @@ export const rawData = [
     order: 10009,
     price: 25795,
     shipped: false,
-    month: "April",
+    delivery: new Date("2025-04-01"),
     status: "Proposal Submitted",
   },
   {
@@ -76,7 +79,7 @@ export const rawData = [
     order: 10010,
     price: 13724,
     shipped: false,
-    month: "November",
+    delivery: new Date("2024-11-29"),
     status: "New",
   },
   {
@@ -84,7 +87,7 @@ export const rawData = [
     order: 10011,
     price: 69425,
     shipped: true,
-    month: "May",
+    delivery: new Date("2025-05-04"),
     status: "Invoicing",
   },
   {
@@ -92,7 +95,7 @@ export const rawData = [
     order: 10012,
     price: 64950,
     shipped: true,
-    month: "June",
+    delivery: new Date("2024-06-15"),
     status: "Invoicing",
   },
   {
@@ -100,7 +103,7 @@ export const rawData = [
     order: 10013,
     price: 33850,
     shipped: false,
-    month: "October",
+    delivery: new Date("2025-10-23"),
     status: "New",
   },
   {
@@ -108,7 +111,7 @@ export const rawData = [
     order: 10014,
     price: 29600,
     shipped: false,
-    month: "August",
+    delivery: new Date("2025-08-28"),
     status: "Invoicing",
   },
   {
@@ -116,7 +119,7 @@ export const rawData = [
     order: 10015,
     price: 48890,
     shipped: true,
-    month: "February",
+    delivery: new Date("2025-02-14"),
     status: "New",
   },
   {
@@ -124,7 +127,7 @@ export const rawData = [
     order: 10016,
     price: 15774,
     shipped: false,
-    month: "January",
+    delivery: new Date("2025-01-10"),
     status: "Complete",
   },
   {
@@ -132,7 +135,7 @@ export const rawData = [
     order: 10017,
     price: 18460,
     shipped: false,
-    month: "July",
+    delivery: new Date("2025-07-04"),
     status: "Awarded",
   },
   {
@@ -140,7 +143,7 @@ export const rawData = [
     order: 10018,
     price: 33795,
     shipped: true,
-    month: "September",
+    delivery: new Date("2024-09-10"),
     status: "Awarded",
   },
   {
@@ -148,7 +151,7 @@ export const rawData = [
     order: 10019,
     price: 175720,
     shipped: false,
-    month: "December",
+    delivery: new Date("2024-12-25"),
     status: "New",
   },
   {
@@ -156,7 +159,7 @@ export const rawData = [
     order: 10020,
     price: 25795,
     shipped: false,
-    month: "April",
+    delivery: new Date("2025-04-01"),
     status: "New",
   },
   {
@@ -164,7 +167,7 @@ export const rawData = [
     order: 10021,
     price: 13724,
     shipped: false,
-    month: "November",
+    delivery: new Date("2024-11-29"),
     status: "PCA Review",
   },
   {
@@ -172,7 +175,7 @@ export const rawData = [
     order: 10022,
     price: 69425,
     shipped: true,
-    month: "May",
+    delivery: new Date("2025-05-04"),
     status: "PCA Review",
   },
   {
@@ -180,7 +183,7 @@ export const rawData = [
     order: 10023,
     price: 64950,
     shipped: true,
-    month: "June",
+    delivery: new Date("2024-06-15"),
     status: "New",
   },
   {
@@ -188,7 +191,7 @@ export const rawData = [
     order: 10024,
     price: 33850,
     shipped: false,
-    month: "October",
+    delivery: new Date("2025-10-23"),
     status: "New",
   },
   {
@@ -196,7 +199,7 @@ export const rawData = [
     order: 10025,
     price: 29600,
     shipped: false,
-    month: "August",
+    delivery: new Date("2025-08-28"),
     status: "Awaiting Funding",
   },
   {
@@ -204,7 +207,7 @@ export const rawData = [
     order: 10026,
     price: 48890,
     shipped: true,
-    month: "February",
+    delivery: new Date("2025-02-14"),
     status: "New",
   },
   {
@@ -212,7 +215,7 @@ export const rawData = [
     order: 10027,
     price: 15774,
     shipped: false,
-    month: "January",
+    delivery: new Date("2025-01-10"),
     status: "Pricing",
   },
   {
@@ -220,7 +223,7 @@ export const rawData = [
     order: 10028,
     price: 18460,
     shipped: false,
-    month: "July",
+    delivery: new Date("2025-07-04"),
     status: "New",
   },
   {
@@ -228,7 +231,7 @@ export const rawData = [
     order: 10029,
     price: 33795,
     shipped: true,
-    month: "September",
+    delivery: new Date("2024-09-10"),
     status: "Pricing",
   },
   {
@@ -236,7 +239,7 @@ export const rawData = [
     order: 10030,
     price: 175720,
     shipped: false,
-    month: "December",
+    delivery: new Date("2024-12-25"),
     status: "Pricing Approved",
   },
   {
@@ -244,7 +247,7 @@ export const rawData = [
     order: 10031,
     price: 25795,
     shipped: false,
-    month: "April",
+    delivery: new Date("2025-04-01"),
     status: "Awarded",
   },
   {
@@ -252,7 +255,7 @@ export const rawData = [
     order: 10032,
     price: 13724,
     shipped: false,
-    month: "November",
+    delivery: new Date("2024-11-29"),
     status: "Bid",
   },
   {
@@ -260,7 +263,7 @@ export const rawData = [
     order: 10033,
     price: 69425,
     shipped: true,
-    month: "May",
+    delivery: new Date("2025-05-04"),
     status: "Complete",
   },
 ];
@@ -308,25 +311,19 @@ export const rawCols = [
   { field: "order", filter: "agNumberColumnFilter" },
   { field: "price", filter: "agNumberColumnFilter" },
   {
-    field: "month",
-    comparator: (valueA, valueB) => {
-      const months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ];
-      const idxA = months.indexOf(valueA);
-      const idxB = months.indexOf(valueB);
-      return idxA - idxB;
-    },
+    headerName: "Delivery Date",
+    field: "delivery",
+    editable: true,
+    cellEditor: CustomDateEditor,
+    cellEditorParams: (params) => ({
+      dateFormat: "yyyy-MM-dd",
+      stopEditing: () => {
+        params.api.stopEditing(); // Ensure the grid stops editing mode
+      },
+      onValueChange: (date) => {
+        params.node.setDataValue("delivery", date); // Properly set the value in grid data
+      },
+    }),
+    cellEditorPopup: true, // Ensure the editor is rendered as a popup
   },
 ];
