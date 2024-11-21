@@ -1,6 +1,6 @@
 "use client";
 
-import { ColDef, RowSelectionOptions } from "ag-grid-community";
+import { CellEditingStoppedEvent } from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
@@ -10,10 +10,12 @@ import React, {
   useCallback,
   useRef,
   useContext,
+  useEffect,
 } from "react";
 
-import { rawData, rawCols } from "./data.js";
+import { rawCols } from "./data.js";
 import { useRequestContext } from "@/app/context";
+import { Skeleton } from "../ui/skeleton";
 
 export interface RowData {
   order: number;
@@ -21,6 +23,7 @@ export interface RowData {
   product: string;
   shipped: boolean;
   delivery: Date;
+  status: string;
 }
 
 export interface RowProps {
@@ -31,7 +34,8 @@ const GridTable = () => {
   const [rowData, setRowData] = useState(null);
   const [gridApi, setGridApi] = useState(null);
 
-  const { data, addRow, updateRow, deleteRow } = useRequestContext();
+  const { data, selectedRow, addRow, updateRow, deleteRow, selectRow } =
+    useRequestContext();
 
   const gridApiRef = useRef<any>(null); // <= defined useRef for gridApi
 
@@ -39,8 +43,6 @@ const GridTable = () => {
     gridApiRef.current = params.api;
     setGridApi(params.api);
   }, []);
-
-  const [columnDefs, setColumnDefs] = useState<ColDef[]>(rawCols);
 
   const defaultColDef = useMemo(() => {
     return {
@@ -50,48 +52,82 @@ const GridTable = () => {
   }, []);
 
   const onSelectionChanged = () => {
-    const selectedRow = gridApiRef.current.getSelectedRows();
-    console.log("Selected row:", JSON.stringify(selectedRow[0]));
-    requestData.setRowData(selectedRow[0]);
+    if (gridApiRef.current) {
+      const selectedNodes = gridApiRef.current.getSelectedNodes();
+      if (selectedNodes.length > 0) {
+        selectRow(selectedNodes[0].data); // Use selectRow to update the selected row in context
+        //console.log("Selected row:", JSON.stringify(selectedNodes[0].data));
+      }
+    } else {
+      console.error("Grid API is not ready.");
+    }
   };
 
-  const [dateData, setDateData] = useState([{ delivery: new Date() }]);
-
-  const handleCellEditingStopped = (params: any) => {
-    console.log("Cell editing stopped:", params);
-    const newValue = params.newValue;
-    console.log("New Value:", newValue);
+  const handleSelectRow = (row: RowData) => {
+    selectRow(row);
+  };
+  const handleAddRow = () => {
+    console.log("Adding New Row!");
+    // const newRow: RowData = {
+    //   /* ... */
+    // };
+    // addRow(newRow);
+  };
+  const handleUpdateRow = (index: number) => {
+    console.log("Updating Row index: " + index);
+    // if (selectedRow) {
+    //   const updatedRow: RowData = {
+    //     /* ...update with necessary data... */
+    //   };
+    //   updateRow(index, updatedRow);
+    // }
+  };
+  const handleDeleteRow = (index: number) => {
+    deleteRow(index);
   };
 
-  const gridOptions = {
-    rowSelection: "single", // or 'multi-row' for multiple selection
-    onCellEditingStopped: (params: any) => {
-      console.log("Cell editing stopped:", params);
-      const newValue = params.newValue;
-      console.log("New Value:", newValue);
-    },
+  const handleCellEditingStopped = (params: CellEditingStoppedEvent) => {
+    //console.log("Cell editing stopped:", params);
+    const updatedRow = params.data;
+    const rowIndex = params.node.rowIndex;
+    if (rowIndex !== null && rowIndex !== undefined) {
+      updateRow(rowIndex, updatedRow); // Update the row using the updateRow method
+    } else {
+      console.error("Row index is null or undefined.");
+    }
   };
 
   return (
     <div
-      className={"ag-theme-quartz mx-auto"}
-      style={{ width: "80%", height: "500px" }}
+      className={"ag-theme-quartz mx-auto "}
+      style={{ width: "90%", height: "500px" }}
     >
-      <AgGridReact
-        rowData={rowData}
-        columnDefs={columnDefs}
-        defaultColDef={defaultColDef}
-        rowSelection="single" // Directly specify row selection
-        onCellEditingStopped={handleCellEditingStopped} // Directly specify the event handler
-        onSelectionChanged={onSelectionChanged}
-        pagination={true}
-        paginationPageSize={10}
-        paginationPageSizeSelector={[10, 25, 50]}
-        onGridReady={onGridReady}
-        ref={gridApiRef}
-        // onCellValueChanged={onCellValueChanged}
-        //onCellEditingStopped={handleCellEditingStopped}
-      />
+      {/* Show if data hasnt loaded */}
+      {!data ? (
+        <div className="flex justify-center items-center ">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[250px]" />
+              <Skeleton className="h-4 w-[200px]" />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <AgGridReact
+          rowData={data}
+          columnDefs={rawCols}
+          defaultColDef={defaultColDef}
+          rowSelection="single" // Directly specify row selection
+          onCellEditingStopped={handleCellEditingStopped} // Directly specify the event handler
+          onSelectionChanged={onSelectionChanged}
+          pagination={true}
+          paginationPageSize={10}
+          paginationPageSizeSelector={[10, 25, 50]}
+          onGridReady={onGridReady}
+          ref={gridApiRef}
+        />
+      )}
     </div>
   );
 };

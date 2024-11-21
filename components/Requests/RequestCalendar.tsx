@@ -1,37 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import React, { useState, useEffect } from "react";
 import { Label } from "../ui/label";
-
-const FormSchema = z.object({
-  dob: z.date({
-    required_error: "A date of birth is required.",
-  }),
-});
 
 interface CalendarData {
   label: string;
@@ -41,15 +11,28 @@ interface CalendarProps {
   data: CalendarData;
 }
 
+// Utility function to format the Date object to 'YYYY-MM-DD' string
+function formatDate(date?: Date): string | undefined {
+  if (!date) return undefined;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 export function RequestCalendar({ data }: CalendarProps) {
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState<string | undefined>(formatDate(data.date));
+  useEffect(() => {
+    setDate(formatDate(data.date));
+  }, [data.date]);
 
   const handleChange = (event: any) => {
     setDate(event.target.value);
   };
+
   return (
     <div>
       <Label>{data.label}</Label>
+
       <div>
         <input type="date" value={date} onChange={handleChange} />
       </div>

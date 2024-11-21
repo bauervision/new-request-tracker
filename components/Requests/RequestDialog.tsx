@@ -14,15 +14,15 @@ import { Label } from "@/components/ui/label";
 
 import { Combobox } from "./ComboBox";
 import Link from "next/link";
-import { RequestContext } from "@/app/context";
-import { useContext } from "react";
+import { useRequestContext } from "@/app/context";
+
 import { RequestCalendar } from "./RequestCalendar";
 import { Switch } from "../ui/switch";
 
 export function RequestDialog() {
-  const rowData = useContext(RequestContext);
+  const { selectedRow } = useRequestContext();
 
-  if (!rowData) {
+  if (!selectedRow) {
     return (
       <div>
         <div className=" flex justify-center items-center gradientBG py-4 text-white">
@@ -33,15 +33,19 @@ export function RequestDialog() {
     );
   }
 
+  const handleStatusChange = (newStatus: string) => {
+    console.log("Changed..." + newStatus);
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="secondary">View Request</Button>
       </DialogTrigger>
-      {rowData && (
+      {selectedRow && (
         <DialogContent className="sm:max-w-[900px] text-slate-900">
           <DialogHeader>
-            <DialogTitle>Order Number: {rowData.data?.order}</DialogTitle>
+            <DialogTitle>Order Number: {selectedRow?.order}</DialogTitle>
             <DialogDescription>
               Make changes to this request here. Click save when you're done.
             </DialogDescription>
@@ -54,8 +58,8 @@ export function RequestDialog() {
             <Input
               id="product"
               value={
-                rowData.data?.product
-                  ? rowData.data?.product
+                selectedRow?.product
+                  ? selectedRow?.product
                   : " No product found"
               }
               className="w-auto"
@@ -73,8 +77,8 @@ export function RequestDialog() {
                 <Input
                   id="price"
                   value={
-                    rowData.data?.price
-                      ? `$${rowData.data?.price.toLocaleString()}`
+                    selectedRow?.price
+                      ? `$${selectedRow?.price.toLocaleString()}`
                       : " No price found"
                   }
                   className="col-span-3"
@@ -89,7 +93,7 @@ export function RequestDialog() {
                 <RequestCalendar
                   data={{
                     label: "Delivery Date",
-                    date: rowData.data?.delivery,
+                    date: selectedRow?.delivery,
                   }}
                 />
               </div>
@@ -98,10 +102,10 @@ export function RequestDialog() {
             {/* Shipped? */}
             <div className="flex items-center space-x-2">
               <Switch
-                id={JSON.stringify(rowData.data?.shipped)}
-                checked={rowData.data?.shipped}
+                id={JSON.stringify(selectedRow?.shipped)}
+                checked={selectedRow?.shipped}
               />
-              <Label htmlFor={JSON.stringify(rowData.data?.shipped)}>
+              <Label htmlFor={JSON.stringify(selectedRow?.shipped)}>
                 Shipped
               </Label>
             </div>
@@ -111,7 +115,10 @@ export function RequestDialog() {
                 <Label htmlFor="price" className="text-left">
                   Current Status
                 </Label>
-                <Combobox />
+                <Combobox
+                  initialStatus={selectedRow.status}
+                  onStatusChange={handleStatusChange}
+                />
               </div>
             </div>
           </div>
@@ -123,7 +130,7 @@ export function RequestDialog() {
               </Button>
             </DialogClose>
             <DialogClose asChild>
-              <Link href={`/requests/${rowData.data?.order}`}>
+              <Link href={`/requests/${selectedRow?.order}`}>
                 <Button type="button">Open Full Request</Button>
               </Link>
             </DialogClose>

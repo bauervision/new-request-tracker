@@ -6,10 +6,11 @@ import { RequestDrawer } from "@/components/Requests/RequestDrawer";
 
 import React, { useState, useContext, createContext } from "react";
 
-import { RequestContext } from "../context";
+import { useRequestContext } from "../context";
 
 function RequestPage() {
-  const requestData = useContext(RequestContext);
+  const { data, selectedRow, addRow, updateRow, deleteRow, selectRow } =
+    useRequestContext();
 
   return (
     <div className="bg-slate-300">
@@ -19,7 +20,7 @@ function RequestPage() {
 
       <div className=" container flex flex-row justify-center items-center flex-wrap gap-4 py-2">
         <RequestDrawer />
-        {requestData.data && <RequestDialog />}
+        {selectedRow && <RequestDialog />}
       </div>
 
       <div className="gap-4 py-8 requestBG pb-20">

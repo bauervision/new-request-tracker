@@ -21,7 +21,7 @@ import {
 
 const statuses = [
   {
-    value: "new",
+    value: "New",
     label: "New",
   },
   {
@@ -29,50 +29,71 @@ const statuses = [
     label: "Awaiting Funding",
   },
   {
-    value: "review",
+    value: "Review",
     label: "Review",
   },
   {
-    value: "bid",
+    value: "Bid",
     label: "Bid",
   },
   {
-    value: "nobid",
+    value: "No Bid",
     label: "No Bid",
   },
   {
-    value: "pricing",
+    value: "Pricing",
     label: "Pricing",
   },
   {
-    value: "pcareview",
+    value: "PCA Review",
     label: "PCA Review",
   },
   {
-    value: "pricingapproved",
+    value: "Pricing Approved",
     label: "Pricing Approved",
   },
   {
-    value: "submitted",
+    value: "Proposal Submitted",
     label: "Proposal Submitted",
   },
   {
-    value: "awarded",
+    value: "Awarded",
     label: "Awarded",
   },
   {
-    value: "invoicing",
+    value: "Invoicing",
     label: "Invoicing",
   },
   {
-    value: "complete",
+    value: "Complete",
     label: "Complete",
   },
 ];
 
-export function Combobox() {
+interface ComboboxProps {
+  initialStatus?: string;
+  onStatusChange?: (status: string) => void;
+}
+
+export function Combobox({
+  initialStatus = "",
+  onStatusChange,
+}: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+  const [value, setValue] = React.useState(initialStatus);
+
+  React.useEffect(() => {
+    setValue(initialStatus);
+  }, [initialStatus]);
+
+  const handleSelect = (currentValue: string) => {
+    const newValue = currentValue === value ? "" : currentValue;
+    setValue(newValue);
+    setOpen(false);
+    if (onStatusChange) {
+      onStatusChange(newValue);
+    }
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -99,10 +120,7 @@ export function Combobox() {
                 <CommandItem
                   key={status.value}
                   value={status.value}
-                  onSelect={(currentValue) => {
-                    setValue(currentValue === value ? "" : currentValue);
-                    setOpen(false);
-                  }}
+                  onSelect={() => handleSelect(status.value)}
                 >
                   <Check
                     className={cn(
