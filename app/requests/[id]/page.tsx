@@ -14,8 +14,9 @@ import RequestContent from "@/components/Requests/RequestContent";
 import { Combobox } from "@/components/Requests/ComboBox";
 import { Button } from "@/components/ui/button";
 import { RequestComment } from "@/components/Requests/RequestComment";
-import { RequestAccordion } from "@/components/Requests/RequestAccordion";
 import { RequestCommentPopover } from "@/components/Requests/RequestsCommentPopover";
+
+import { statuses } from "../../../components/Requests/requestPages/requestData";
 
 function SingleRequest({ params }: { params: { id: string } }) {
   const { selectedRow } = useRequestContext();
@@ -93,6 +94,7 @@ function SingleRequest({ params }: { params: { id: string } }) {
               Current Status
             </Label>
             <Combobox
+              data={statuses}
               initialStatus={selectedRow.status}
               onStatusChange={handleStatusChange}
             />

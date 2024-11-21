@@ -19,64 +19,24 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
-const statuses = [
-  {
-    value: "New",
-    label: "New",
-  },
-  {
-    value: "Awaiting",
-    label: "Awaiting Funding",
-  },
-  {
-    value: "Review",
-    label: "Review",
-  },
-  {
-    value: "Bid",
-    label: "Bid",
-  },
-  {
-    value: "No Bid",
-    label: "No Bid",
-  },
-  {
-    value: "Pricing",
-    label: "Pricing",
-  },
-  {
-    value: "PCA Review",
-    label: "PCA Review",
-  },
-  {
-    value: "Pricing Approved",
-    label: "Pricing Approved",
-  },
-  {
-    value: "Proposal Submitted",
-    label: "Proposal Submitted",
-  },
-  {
-    value: "Awarded",
-    label: "Awarded",
-  },
-  {
-    value: "Invoicing",
-    label: "Invoicing",
-  },
-  {
-    value: "Complete",
-    label: "Complete",
-  },
-];
+interface ComboItem {
+  value: string;
+  label: string;
+}
 
 interface ComboboxProps {
   initialStatus?: string;
   onStatusChange?: (status: string) => void;
+  data: ComboItem[];
+  placeholder: string;
+  label: string;
 }
 
 export function Combobox({
   initialStatus = "",
+  data,
+  placeholder,
+  label,
   onStatusChange,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false);
@@ -104,31 +64,29 @@ export function Combobox({
           aria-expanded={open}
           className="w-[200px] justify-between"
         >
-          {value
-            ? statuses.find((status) => status.value === value)?.label
-            : "Select status"}
+          {value ? data.find((d) => d.value === value)?.label : `${label}`}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0">
         <Command>
-          <CommandInput placeholder="Search status..." />
+          <CommandInput placeholder={placeholder} />
           <CommandList>
-            <CommandEmpty>No statuses found.</CommandEmpty>
+            <CommandEmpty>Nothing found.</CommandEmpty>
             <CommandGroup>
-              {statuses.map((status) => (
+              {data.map((d) => (
                 <CommandItem
-                  key={status.value}
-                  value={status.value}
-                  onSelect={() => handleSelect(status.value)}
+                  key={d.value}
+                  value={d.value}
+                  onSelect={() => handleSelect(d.value)}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === status.value ? "opacity-100" : "opacity-0"
+                      value === d.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {status.label}
+                  {d.label}
                 </CommandItem>
               ))}
             </CommandGroup>

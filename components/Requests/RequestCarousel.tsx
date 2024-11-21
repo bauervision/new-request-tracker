@@ -9,8 +9,11 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
+import { NewRequestPage1 } from "./requestPages/page1";
+import { NewRequestPage2 } from "./requestPages/page2";
+import { NewRequestPage3 } from "./requestPages/page3";
+import { NewRequestPage4 } from "./requestPages/page4";
+import { NewRequestPage5 } from "./requestPages/page5";
 
 export function RequestCarousel() {
   const [api, setApi] = React.useState<CarouselApi>();
@@ -30,128 +33,51 @@ export function RequestCarousel() {
     });
   }, [api]);
 
+  const handleValueChange = (value: string) => {
+    console.log(value);
+  };
+
   return (
     <>
       <Carousel
         setApi={setApi}
-        className="border h-[300px] flex  items-center justify-center"
+        className=" h-[300px] flex  items-center justify-center"
       >
         <CarouselContent>
           {/* Page 1 */}
-          <CarouselItem className="h-full">
-            <Card>
-              <CardContent className="flex  items-center justify-center ">
-                <div className=" text-4xl font-semibold">
-                  First Page
-                  <div className=" grid  items-center gap-4">
-                    <Label htmlFor="product" className="text-left">
-                      Product
-                    </Label>
-                    <Input
-                      id="product"
-                      value="data"
-                      className="w-auto"
-                      onChange={() => console.log("Changed Product")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <CarouselItem className="h-full w-full relative">
+            <NewRequestPage1 onValueChange={handleValueChange} />
           </CarouselItem>
 
           {/* Page 2 */}
           <CarouselItem className="h-full">
-            <Card>
-              <CardContent className="flex  items-center justify-center ">
-                <div className=" text-4xl font-semibold">
-                  Second Page
-                  <div className=" grid  items-center gap-4">
-                    <Label htmlFor="product" className="text-left">
-                      Product
-                    </Label>
-                    <Input
-                      id="product"
-                      value="data"
-                      className="w-auto"
-                      onChange={() => console.log("Changed Product")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <NewRequestPage2 onValueChange={handleValueChange} />
           </CarouselItem>
 
           {/* Page 3 */}
           <CarouselItem className="h-full">
-            <Card>
-              <CardContent className="flex  items-center justify-center ">
-                <div className=" text-4xl font-semibold">
-                  Third Page
-                  <div className=" grid  items-center gap-4">
-                    <Label htmlFor="product" className="text-left">
-                      Product
-                    </Label>
-                    <Input
-                      id="product"
-                      value="data"
-                      className="w-auto"
-                      onChange={() => console.log("Changed Product")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <NewRequestPage3 onValueChange={handleValueChange} />
           </CarouselItem>
 
           {/* Page 4 */}
           <CarouselItem className="h-full">
-            <Card>
-              <CardContent className="flex  items-center justify-center ">
-                <div className=" text-4xl font-semibold">
-                  Fourth Page
-                  <div className=" grid  items-center gap-4">
-                    <Label htmlFor="product" className="text-left">
-                      Product
-                    </Label>
-                    <Input
-                      id="product"
-                      value="data"
-                      className="w-auto"
-                      onChange={() => console.log("Changed Product")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <NewRequestPage4 onValueChange={handleValueChange} />
           </CarouselItem>
 
           {/* Page 5 */}
           <CarouselItem className="h-100">
-            <Card>
-              <CardContent className="flex  items-center justify-center ">
-                <div className=" text-4xl font-semibold">
-                  Fifth Page
-                  <div className=" grid  items-center gap-4">
-                    <Label htmlFor="product" className="text-left">
-                      Product
-                    </Label>
-                    <Input
-                      id="product"
-                      value="data"
-                      className="w-auto"
-                      onChange={() => console.log("Changed Product")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <NewRequestPage5 onValueChange={handleValueChange} />
           </CarouselItem>
         </CarouselContent>
+
+        {/* Controller Buttons */}
         <CarouselPrevious />
         <CarouselNext />
       </Carousel>
+
+      {/* Carousel Status */}
       <div className="py-2 text-center text-sm text-muted-foreground">
-        Slide {current} of {count}
+        Page {current} of {count}
       </div>
     </>
   );

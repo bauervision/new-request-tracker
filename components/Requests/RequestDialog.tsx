@@ -18,6 +18,7 @@ import { useRequestContext } from "@/app/context";
 
 import { RequestCalendar } from "./RequestCalendar";
 import { Switch } from "../ui/switch";
+import { statuses } from "./requestPages/requestData";
 
 export function RequestDialog() {
   const { selectedRow } = useRequestContext();
@@ -116,6 +117,7 @@ export function RequestDialog() {
                   Current Status
                 </Label>
                 <Combobox
+                  data={statuses}
                   initialStatus={selectedRow.status}
                   onStatusChange={handleStatusChange}
                 />
