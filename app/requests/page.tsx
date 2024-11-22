@@ -7,24 +7,15 @@ import { RequestDrawer } from "@/components/Requests/RequestDrawer";
 import React, { useState, useContext, createContext } from "react";
 
 import { useRequestContext } from "../context";
+import RequestTrackerNavBar from "./RequestTrackerNavBar";
+import { RequestTabs } from "./RequestTabs";
 
 function RequestPage() {
-  const { data, selectedRow, addRow, updateRow, deleteRow, selectRow } =
-    useRequestContext();
-
   return (
     <div className="bg-slate-300">
-      <div className="gradientBG py-4 text-white">
-        <h1 className="boldText">Request Tracker</h1>
-      </div>
-
+      <RequestTrackerNavBar />
       <div className=" container flex flex-row justify-center items-center flex-wrap gap-4 py-2">
-        <RequestDrawer />
-        {selectedRow && <RequestDialog />}
-      </div>
-
-      <div className="gap-4 py-8 requestBG pb-20">
-        <GridTable />
+        <RequestTabs />
       </div>
     </div>
   );

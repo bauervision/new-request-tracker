@@ -117,6 +117,8 @@ export function RequestDialog() {
                   Current Status
                 </Label>
                 <Combobox
+                  placeholder="Set Status"
+                  label="Request Status"
                   data={statuses}
                   initialStatus={selectedRow.status}
                   onStatusChange={handleStatusChange}

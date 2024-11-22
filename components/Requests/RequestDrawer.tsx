@@ -16,6 +16,7 @@ import {
 
 import { RequestCarousel } from "./RequestCarousel";
 import RequestToast, { showToast } from "./RequestToast";
+import RequestNumber from "./requestPages/RequestNumber";
 
 export function RequestDrawer() {
   const [inputValue, setInputValue] = useState("");
@@ -33,10 +34,6 @@ export function RequestDrawer() {
     }
   };
 
-  const handleRequestNumber = () => {
-    return "00000023";
-  };
-
   return (
     <Drawer>
       <RequestToast />
@@ -47,9 +44,8 @@ export function RequestDrawer() {
         <div className="mx-auto w-full max-w-5xl h-[500px] ">
           <DrawerHeader>
             <DrawerTitle>New Request</DrawerTitle>
-            <DrawerDescription>{`New Request #: ${handleRequestNumber()}`}</DrawerDescription>
           </DrawerHeader>
-
+          <RequestNumber />
           <RequestCarousel />
 
           <DrawerFooter>
