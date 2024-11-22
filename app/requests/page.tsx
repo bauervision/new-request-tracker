@@ -12,11 +12,8 @@ import { RequestTabs } from "./RequestTabs";
 
 function RequestPage() {
   return (
-    <div className="bg-slate-300">
-      <RequestTrackerNavBar />
-      <div className=" container flex flex-row justify-center items-center flex-wrap gap-4 py-2">
-        <RequestTabs />
-      </div>
+    <div>
+      <RequestTabs />
     </div>
   );
 }

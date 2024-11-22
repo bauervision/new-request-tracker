@@ -1,46 +1,46 @@
 export const adminData = [
-  { label: "User Management" },
-  { label: "Site Administration" },
-  { label: "Request Tracker Settings" },
-  { label: "Message Center" },
-  { label: "Account Information" },
-  { label: "What's New" },
-  { label: "Calendar" },
+  { label: "User Management", url: "/admin" },
+  { label: "Site Administration", url: "/admin" },
+  { label: "Request Tracker Settings", url: "/admin" },
+  { label: "Message Center", url: "/admin" },
+  { label: "Account Information", url: "/admin" },
+  { label: "What's New", url: "/admin" },
+  { label: "Calendar", url: "/admin" },
 ];
 
 export const programManagementData = [
-  { label: "Request Tracker" },
-  { label: "Deliverable Tracker" },
-  { label: "Action Tracking" },
-  { label: "Readiness Dashboard" },
-  { label: "Program Request Tracking" },
-  { label: "Information Portal" },
+  { label: "Request Tracker", url: "/management" },
+  { label: "Deliverable Tracker", url: "/management" },
+  { label: "Action Tracking", url: "/management" },
+  { label: "Readiness Dashboard", url: "/management" },
+  { label: "Program Request Tracking", url: "/management" },
+  { label: "Information Portal", url: "/management" },
 ];
 
 export const catalogData = [
-  { label: "Catalog Management" },
-  { label: "Order Status/Approval" },
-  { label: "Project Code Summary" },
-  { label: "Order Status Report" },
-  { label: "Organizations" },
-  { label: "Configuration" },
-  { label: "Shop Project Code" },
+  { label: "Catalog Management", url: "/catalog" },
+  { label: "Order Status/Approval", url: "/catalog" },
+  { label: "Project Code Summary", url: "/catalog" },
+  { label: "Order Status Report", url: "/catalog" },
+  { label: "Organizations", url: "/catalog" },
+  { label: "Configuration", url: "/catalog" },
+  { label: "Shop Project Code", url: "/catalog" },
 ];
 
 export const inventoryData = [
-  { label: "Inventory Management" },
-  { label: "Transactions" },
-  { label: "Reports" },
-  { label: "Fulfill Shipment Requests" },
-  { label: "Receive Shipments" },
+  { label: "Inventory Management", url: "/inventory" },
+  { label: "Transactions", url: "/inventory" },
+  { label: "Reports", url: "/inventory" },
+  { label: "Fulfill Shipment Requests", url: "/inventory" },
+  { label: "Receive Shipments", url: "/inventory" },
 ];
 
 export const maintenanceData = [
-  { label: "Work Orders" },
-  { label: "Maintenance Scheduler" },
-  { label: "Work Order Status" },
-  { label: "Procedures" },
-  { label: "Work Order Logbook" },
-  { label: "Configuration" },
-  { label: "Shop Project Code" },
+  { label: "Work Orders", url: "/maintenance" },
+  { label: "Maintenance Scheduler", url: "/maintenance" },
+  { label: "Work Order Status", url: "/maintenance" },
+  { label: "Procedures", url: "/maintenance" },
+  { label: "Work Order Logbook", url: "/maintenance" },
+  { label: "Configuration", url: "/maintenance" },
+  { label: "Shop Project Code", url: "/maintenance" },
 ];

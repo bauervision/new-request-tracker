@@ -8,9 +8,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 interface DropdownItem {
   label: string;
+  url: string;
 }
 
 interface DropdownProps {
@@ -28,7 +30,9 @@ export function Dropdown({ items, title }: DropdownProps) {
         <DropdownMenuSeparator />
         {items?.map((item, index) => (
           <DropdownMenuGroup key={index}>
-            <DropdownMenuItem>{item.label}</DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href={item.url}>{item.label}</Link>
+            </DropdownMenuItem>
 
             {index < items.length - 1 && <DropdownMenuSeparator />}
           </DropdownMenuGroup>

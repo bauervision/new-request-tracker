@@ -10,7 +10,7 @@ import {
 function RequestTrackerNavBar() {
   return (
     <div className="gradientBG py-4 ">
-      <h1 className="boldText text-white mb-3">Request Tracker</h1>
+      <h1 className="boldText text-white mb-3">Catēna Request Tracker</h1>
       <div className="grid grid-cols-5 space-x-3 px-4 items-center justify-center">
         <Dropdown title="Administration" items={adminData} />
         <Dropdown title="Program Management" items={programManagementData} />
