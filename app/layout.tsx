@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
 import { RequestProvider } from "./context";
-import RequestTrackerNavBar from "./requests/RequestTrackerNavBar";
+import RequestTrackerNavBar from "./request-tracker/RequestTrackerNavBar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,15 +33,8 @@ export default function RootLayout({
       >
         <main>
           <Navbar />
-          <div className="mx-auto ">
-            <RequestProvider>
-              <div className="bg-slate-300">
-                <RequestTrackerNavBar />
-                <div className=" container flex flex-row justify-center items-center flex-wrap gap-4 py-2">
-                  {children}
-                </div>
-              </div>
-            </RequestProvider>
+          <div>
+            <RequestProvider>{children}</RequestProvider>
           </div>
         </main>
       </body>

@@ -134,7 +134,7 @@ export function RequestDialog() {
               </Button>
             </DialogClose>
             <DialogClose asChild>
-              <Link href={`/requests/${selectedRow?.order}`}>
+              <Link href={`/request-tracker/${selectedRow?.order}`}>
                 <Button type="button">Open Full Request</Button>
               </Link>
             </DialogClose>

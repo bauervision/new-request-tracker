@@ -14,12 +14,44 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRequestContext } from "../context";
+import RequestContent from "@/components/Requests/RequestContent";
+import { Switch } from "@/components/ui/switch";
+import { RequestCalendar } from "@/components/Requests/RequestCalendar";
+import { Combobox } from "@/components/Requests/ComboBox";
+import { statuses } from "@/components/Requests/requestPages/requestData";
+import { RequestComment } from "@/components/Requests/RequestComment";
+import { RequestCommentPopover } from "@/components/Requests/RequestsCommentPopover";
+import { RequestBreadcrumb } from "@/components/Requests/RequestBreadcrumb";
+import { AdvanceWorkflowPopover } from "@/components/Requests/AdvanceWorkflowPopover";
+import RequestToast, { showToast } from "@/components/Requests/RequestToast";
 
 export function RequestTabs() {
   const { selectedRow } = useRequestContext();
 
+  if (!selectedRow) {
+    return <div>NoData</div>;
+  }
+
+  const handleStatusChange = async (newStatus?: string) => {
+    // console.log("Changed..." + newStatus);
+    showToast("Saving Data...", "info");
+    try {
+      // Simulate data saving
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // setInputValue("value");
+      showToast("Save Success", "success");
+    } catch (error: any) {
+      showToast(`Save Error: ${error.message}`, "error");
+    }
+  };
+
+  const handleCommentChange = (text: string) => {
+    console.log(text);
+  };
+
   return (
-    <Tabs defaultValue="info" className="w-full mx-6">
+    <Tabs defaultValue="info" className=" mx-6">
+      <RequestToast />
       <TabsList className="grid w-full grid-cols-8">
         <TabsTrigger value="info">Request Information</TabsTrigger>
         <TabsTrigger value="docs" disabled={false}>
@@ -28,9 +60,7 @@ export function RequestTabs() {
         <TabsTrigger value="lines" disabled>
           Request Line Items
         </TabsTrigger>
-        <TabsTrigger value="progress" disabled>
-          Progress/Status
-        </TabsTrigger>
+
         <TabsTrigger value="orders" disabled>
           Orders
         </TabsTrigger>
@@ -49,17 +79,91 @@ export function RequestTabs() {
       <TabsContent value="info">
         <Card>
           <CardHeader>
-            <CardTitle>Requests</CardTitle>
-            <CardDescription>Request and Order Tracking</CardDescription>
-            <div className="flex flex-row space-x-5">
-              <RequestDrawer />
-              {selectedRow && <RequestDialog />}
+            <div className=" flex flex-row w-full  items-center justify-between ">
+              {/* <RequestBreadcrumb /> */}
             </div>
+            <div className="flex flex-row space-x-5"></div>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="space-y-1">
               <div className="gap-4 py-8 requestBG pb-20">
-                <GridTable />
+                {/* First Section */}
+                <RequestContent>
+                  {/* Product */}
+                  <div>
+                    <Label htmlFor="product" className="text-left">
+                      Product
+                    </Label>
+                    <Input
+                      id="product"
+                      placeholder={selectedRow.product}
+                      //value=
+                      className="w-auto"
+                      onChange={() => console.log("Changed Product")}
+                    />
+                  </div>
+                  {/* Price */}
+                  <div>
+                    <Label htmlFor="price" className="text-left">
+                      Price
+                    </Label>
+                    <Input
+                      id="price"
+                      placeholder={`$ ${selectedRow.price.toLocaleString()}`}
+                      value={`$ ${selectedRow.price.toLocaleString()}`}
+                      className="w-auto"
+                      onChange={() => console.log("Changed Price")}
+                    />
+                  </div>
+                  {/* Shipped */}
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id={JSON.stringify(selectedRow.shipped)}
+                      checked={selectedRow.shipped}
+                      disabled={false}
+                    />
+                    <Label htmlFor={JSON.stringify(selectedRow.shipped)}>
+                      Shipped
+                    </Label>
+                  </div>
+
+                  {/* Delivery Date */}
+                  <RequestCalendar
+                    data={{
+                      label: "Delivery Date",
+                      date: new Date(selectedRow.delivery || ""),
+                    }}
+                  />
+
+                  <div className=" grid grid-cols-2 items-center gap-4">
+                    <div>
+                      <Label htmlFor="price" className="text-left">
+                        Current Status
+                      </Label>
+                      <Combobox
+                        placeholder="Set Status"
+                        label="Request Status"
+                        data={statuses}
+                        initialStatus={selectedRow.status}
+                        //onStatusChange={handleStatusChange}
+                      />
+                    </div>
+                  </div>
+
+                  <RequestComment
+                    onTextChange={handleCommentChange}
+                    label="Enter your comments"
+                  />
+
+                  <RequestCommentPopover />
+                  <Button
+                    type="button"
+                    variant="default"
+                    onClick={() => handleStatusChange()}
+                  >
+                    Save Changes
+                  </Button>
+                </RequestContent>
               </div>
             </div>
           </CardContent>
@@ -96,24 +200,6 @@ export function RequestTabs() {
               <div className="gap-4 py-8 requestBG pb-20">
                 <Label htmlFor="current">Current Line Items</Label>
                 <div>Line Item Data Here</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      {/* Progress Tab */}
-      <TabsContent value="progress">
-        <Card>
-          <CardHeader>
-            <CardTitle>Progress / Status</CardTitle>
-            <CardDescription>Progress status for requests.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <div className="gap-4 py-8 requestBG pb-20">
-                <Label htmlFor="current">Current Status</Label>
-                <div>Status Data Here</div>
               </div>
             </div>
           </CardContent>

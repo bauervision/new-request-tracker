@@ -38,7 +38,9 @@ export function RequestDrawer() {
     <Drawer>
       <RequestToast />
       <DrawerTrigger asChild>
-        <Button variant="outline">Add New Request</Button>
+        <Button variant="outline" className="bg-blue-800 text-white">
+          Add New Request
+        </Button>
       </DrawerTrigger>
       <DrawerContent>
         <div className="mx-auto w-full max-w-5xl h-[500px] ">

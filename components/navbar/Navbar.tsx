@@ -24,7 +24,7 @@ function Navbar() {
             className="navLink"
             style={inactiveHeaderStyle}
             data-testid="NavLink"
-            href="/requests"
+            href="/request-tracker"
           >
             Request Tracker
           </Link>

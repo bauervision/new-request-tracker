@@ -12,7 +12,7 @@ import {
 export function RequestBreadcrumb() {
   return (
     <Breadcrumb>
-      <BreadcrumbList className="text-white">
+      <BreadcrumbList className="text-slate-800">
         <BreadcrumbItem>
           <BreadcrumbLink href="/">Home</BreadcrumbLink>
         </BreadcrumbItem>
@@ -20,11 +20,8 @@ export function RequestBreadcrumb() {
           <Slash />
         </BreadcrumbSeparator>
         <BreadcrumbItem>
-          <BreadcrumbLink href="/requests">Requests</BreadcrumbLink>
+          <BreadcrumbLink href="/request-tracker">Requests</BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator>
-          <Slash />
-        </BreadcrumbSeparator>
       </BreadcrumbList>
     </Breadcrumb>
   );
