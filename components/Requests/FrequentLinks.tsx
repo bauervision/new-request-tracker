@@ -15,17 +15,24 @@ const FrequentLinks: React.FC = () => {
 
   const getButtonText = (route: string) => {
     const parts = route.split("/");
-    const text = parts[parts.length - 1] || parts[parts.length - 2];
-    return text.charAt(0).toUpperCase() + text.slice(1);
+    const text = parts[parts.length - 1] || parts[parts.length - 2]; // Replace hyphens with spaces and capitalize each word
+    return text
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   return (
-    <div className="flex space-x-2">
-      {links.map((route) => (
-        <Link href={route} key={route} className="btn">
-          <Button variant="outline">{getButtonText(route)}</Button>
-        </Link>
-      ))}
+    <div className=" flex space-x-2 flex-col items-center justify-center">
+      <div className="h-2 text-xs pb-4 justify-center">Frequent Links</div>
+      <div className="flex-row space-x-2">
+        {links.map((route) => (
+          <Link href={route} key={route}>
+            <Button variant="outline" className="h-2 text-xs">
+              {getButtonText(route)}
+            </Button>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 };
