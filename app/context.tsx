@@ -1,6 +1,22 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import {
+  Toast,
+  ToastProvider,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastViewport,
+  ShadcnToastProps,
+} from "@/components/ui/toast";
+
 import { RowData } from "@/components/ag-grid-table/GridTable";
 import { rawData } from "@/components/ag-grid-table/data";
 
@@ -72,3 +88,61 @@ export const RequestProvider = ({
 };
 
 export const useRequestContext = () => useContext(RequestContext);
+
+/// TOAST
+
+interface ToastContextProps {
+  addToast: (toast: ShadcnToastProps) => number;
+  updateToast: (id: number, updatedToast: Partial<ShadcnToastProps>) => void;
+}
+interface ToastProviderProps {
+  children: ReactNode;
+}
+const ToastContext = createContext<ToastContextProps | undefined>(undefined);
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error("useToast must be used within a ToastContextProvider");
+  }
+  return context;
+};
+export const ToastContextProvider: React.FC<ToastProviderProps> = ({
+  children,
+}) => {
+  const [toasts, setToasts] = useState<ShadcnToastProps[]>([]);
+  const addToast = (toast: ShadcnToastProps) => {
+    console.log("Adding toast:", toast);
+    setToasts((prevToasts) => [...prevToasts, toast]);
+    return toasts.length; // Returning the index as the ID
+  };
+  const updateToast = (id: number, updatedToast: Partial<ShadcnToastProps>) => {
+    console.log("Updating toast:", id, updatedToast);
+    setToasts((prevToasts) =>
+      prevToasts.map((toast, index) =>
+        index === id ? { ...toast, ...updatedToast } : toast
+      )
+    );
+  };
+  return (
+    <ToastContext.Provider value={{ addToast, updateToast }}>
+      {children}
+      <ToastProvider>
+        {toasts.map((toast, index) => (
+          <Toast
+            key={index}
+            variant={toast.variant}
+            title={toast.title} //missing
+            description={toast.description} //missing
+          >
+            <ToastTitle>{toast.title}</ToastTitle>
+            {toast.description && (
+              <ToastDescription>{toast.description}</ToastDescription>
+            )}
+            <ToastClose />
+          </Toast>
+        ))}
+        <ToastViewport />
+      </ToastProvider>
+    </ToastContext.Provider>
+  );
+};

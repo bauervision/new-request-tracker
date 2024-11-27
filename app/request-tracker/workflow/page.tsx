@@ -1,3 +1,5 @@
+"use client";
+
 import WorkflowEditor from "@/components/Workflows/workflow-editor";
 import RequestsLayout from "@/app/request-tracker/RequestsLayout";
 import React, { useState } from "react";
@@ -11,6 +13,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ListItem } from "./WorkflowItem";
+import { handleLinkClick } from "@/app/utils/trackLinkClicks";
 
 function Workflows() {
   const initialItems: ListItem[] = [];
@@ -25,7 +28,10 @@ function Workflows() {
             </div>
 
             <div className="">
-              <Link href="/request-tracker">
+              <Link
+                href="/request-tracker"
+                onClick={() => handleLinkClick("/request-tracker")}
+              >
                 <Button variant="outline">View Requests</Button>
               </Link>
             </div>

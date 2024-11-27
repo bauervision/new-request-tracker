@@ -1,12 +1,8 @@
-import GridTable from "@/components/ag-grid-table/GridTable";
-import { RequestDialog } from "@/components/Requests/RequestDialog";
-import { RequestDrawer } from "@/components/Requests/RequestDrawer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,28 +17,21 @@ import { Combobox } from "@/components/Requests/ComboBox";
 import { statuses } from "@/components/Requests/requestPages/requestData";
 import { RequestComment } from "@/components/Requests/RequestComment";
 import { RequestCommentPopover } from "@/components/Requests/RequestsCommentPopover";
-import { RequestBreadcrumb } from "@/components/Requests/RequestBreadcrumb";
-import { AdvanceWorkflowPopover } from "@/components/Requests/AdvanceWorkflowPopover";
+
 import RequestToast, { showToast } from "@/components/Requests/RequestToast";
+
+import { useFetchWithToast } from "@/hooks/fetchWithToast";
 
 export function RequestTabs() {
   const { selectedRow } = useRequestContext();
+  const { fetchWithToast } = useFetchWithToast();
 
   if (!selectedRow) {
     return <div>NoData</div>;
   }
 
-  const handleStatusChange = async (newStatus?: string) => {
-    // console.log("Changed..." + newStatus);
-    showToast("Saving Data...", "info");
-    try {
-      // Simulate data saving
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      // setInputValue("value");
-      showToast("Save Success", "success");
-    } catch (error: any) {
-      showToast(`Save Error: ${error.message}`, "error");
-    }
+  const handleRequestSave = async (newStatus?: string) => {
+    const result = await fetchWithToast("test");
   };
 
   const handleCommentChange = (text: string) => {
@@ -145,7 +134,7 @@ export function RequestTabs() {
                         label="Request Status"
                         data={statuses}
                         initialStatus={selectedRow.status}
-                        //onStatusChange={handleStatusChange}
+                        //onStatusChange={handleRequestSave}
                       />
                     </div>
                   </div>
@@ -159,7 +148,8 @@ export function RequestTabs() {
                   <Button
                     type="button"
                     variant="default"
-                    onClick={() => handleStatusChange()}
+                    className="bg-blue-800 text-white"
+                    onClick={() => handleRequestSave()}
                   >
                     Save Changes
                   </Button>

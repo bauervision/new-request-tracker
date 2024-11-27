@@ -19,9 +19,11 @@ import { useRequestContext } from "@/app/context";
 import { RequestCalendar } from "./RequestCalendar";
 import { Switch } from "../ui/switch";
 import { statuses } from "./requestPages/requestData";
+import { useFetchWithToast } from "@/hooks/fetchWithToast";
 
 export function RequestDialog() {
   const { selectedRow } = useRequestContext();
+  const { fetchWithToast } = useFetchWithToast();
 
   if (!selectedRow) {
     return (
@@ -36,6 +38,10 @@ export function RequestDialog() {
 
   const handleStatusChange = (newStatus: string) => {
     console.log("Changed..." + newStatus);
+  };
+
+  const handleValueChange = async () => {
+    const result = await fetchWithToast("test");
   };
 
   return (
@@ -128,11 +134,16 @@ export function RequestDialog() {
           </div>
 
           <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Save Changes
-              </Button>
-            </DialogClose>
+            {/* <DialogClose asChild> */}
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-blue-800 text-white"
+              onClick={handleValueChange}
+            >
+              Save Changes
+            </Button>
+            {/* </DialogClose> */}
             <DialogClose asChild>
               <Link href={`/request-tracker/${selectedRow?.order}`}>
                 <Button type="button">Open Full Request</Button>

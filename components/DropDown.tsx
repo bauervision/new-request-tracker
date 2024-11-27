@@ -1,3 +1,5 @@
+"use client";
+import { handleLinkClick, trackLinkClick } from "@/app/utils/trackLinkClicks";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,7 +33,12 @@ export function Dropdown({ items, title }: DropdownProps) {
         {items?.map((item, index) => (
           <DropdownMenuGroup key={index}>
             <DropdownMenuItem>
-              <Link href={item.url}>{item.label}</Link>
+              <Link
+                href={item.url}
+                onClick={() => handleLinkClick(` ${item.url} `)}
+              >
+                {item.label}
+              </Link>
             </DropdownMenuItem>
 
             {index < items.length - 1 && <DropdownMenuSeparator />}

@@ -12,6 +12,7 @@ const RequestsLayout: React.FC<NewLayoutProps> = ({ children }) => {
   return (
     <div className="bg-slate-300 container flex flex-row justify-center items-center flex-wrap gap-4">
       <RequestTrackerNavBar />
+
       {children}
     </div>
   );

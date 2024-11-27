@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
-import { RequestProvider } from "./context";
-import RequestTrackerNavBar from "./request-tracker/RequestTrackerNavBar";
+import { RequestProvider, ToastContextProvider } from "./context";
+import { ToastProvider } from "@/components/ui/toast";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,7 +34,9 @@ export default function RootLayout({
         <main>
           <Navbar />
           <div>
-            <RequestProvider>{children}</RequestProvider>
+            <ToastContextProvider>
+              <RequestProvider>{children}</RequestProvider>
+            </ToastContextProvider>
           </div>
         </main>
       </body>

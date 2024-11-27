@@ -9,7 +9,7 @@ export const adminData = [
 ];
 
 export const programManagementData = [
-  { label: "Request Tracker", url: "/request-tracker/management" },
+  { label: "Request Tracker", url: "/request-tracker" },
   { label: "Deliverable Tracker", url: "/request-tracker/management" },
   { label: "Action Tracking", url: "/request-tracker/management" },
   { label: "Readiness Dashboard", url: "/request-tracker/management" },

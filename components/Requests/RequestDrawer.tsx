@@ -18,20 +18,14 @@ import { RequestCarousel } from "./RequestCarousel";
 import RequestToast, { showToast } from "./RequestToast";
 import RequestNumber from "./requestPages/RequestNumber";
 
+import { useFetchWithToast } from "@/hooks/fetchWithToast";
+
 export function RequestDrawer() {
   const [inputValue, setInputValue] = useState("");
+  const { fetchWithToast } = useFetchWithToast();
 
   const handleValueChange = async () => {
-    console.log("Show toast...");
-    showToast("Saving Data...", "info");
-    try {
-      // Simulate data saving
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setInputValue("value");
-      showToast("Save Success", "success");
-    } catch (error: any) {
-      showToast(`Save Error: ${error.message}`, "error");
-    }
+    const result = await fetchWithToast("test");
   };
 
   return (

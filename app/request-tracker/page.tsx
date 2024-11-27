@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import RequestsLayout from "./RequestsLayout";
 import Link from "next/link";
+import { handleLinkClick, trackLinkClick } from "../utils/trackLinkClicks";
 
 function RequestPage() {
   const { selectedRow } = useRequestContext();
@@ -29,20 +30,24 @@ function RequestPage() {
         <CardHeader>
           <div className="flex flex-row space-x-6 justify-between">
             <div className="">
-              <CardTitle>Requests</CardTitle>
-              <CardDescription>Request and Order Tracking</CardDescription>
+              {/* <CardTitle className="pb-3">Requests</CardTitle> */}
+
               {/* Request Buttons */}
               <RequestDrawer />
               {selectedRow && <RequestDialog />}
             </div>
 
             <div className="">
-              <CardTitle>Workflows</CardTitle>
-              <CardDescription>View and Edit Workflows</CardDescription>
-
+              {/* <CardTitle className="pb-3">Workflows</CardTitle> */}
               {/* Workflow Buttons */}
               <Link href="/request-tracker/workflow">
-                <Button variant="outline">View Workflows</Button>
+                <Button
+                  variant="outline"
+                  className="bg-blue-800 text-white"
+                  onClick={() => handleLinkClick("/request-tracker/workflow")}
+                >
+                  View Workflows
+                </Button>
               </Link>
             </div>
           </div>
