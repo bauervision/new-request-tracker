@@ -47,7 +47,9 @@ export function RequestDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary">View Request</Button>
+        <Button variant="outline" className="bg-blue-800 text-white">
+          View Request
+        </Button>
       </DialogTrigger>
       {selectedRow && (
         <DialogContent className="sm:max-w-[900px] text-slate-900">

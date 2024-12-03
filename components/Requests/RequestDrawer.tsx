@@ -48,15 +48,17 @@ export function RequestDrawer() {
             <div className="container flex flex-row">
               <Button
                 onClick={handleValueChange}
-                className="mx-auto w-full max-w-60"
+                className="mx-auto w-full max-w-60 bg-blue-800 text-white"
               >
                 Save Current
               </Button>
               <DrawerClose asChild>
-                <Button className="mx-auto w-full max-w-60">Submit</Button>
+                <Button className="mx-auto w-full max-w-60 bg-blue-800 text-white">
+                  Submit
+                </Button>
               </DrawerClose>
               <DrawerClose asChild>
-                <Button variant="outline" className="mx-auto w-full max-w-60">
+                <Button variant="outline" className="mx-auto w-full max-w-60 ">
                   Cancel
                 </Button>
               </DrawerClose>

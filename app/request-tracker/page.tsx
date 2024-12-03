@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import RequestsLayout from "./RequestsLayout";
 import Link from "next/link";
 import { handleLinkClick, trackLinkClick } from "../utils/trackLinkClicks";
+import TaskSheet from "@/components/TaskSheet";
 
 function RequestPage() {
   const { selectedRow } = useRequestContext();
@@ -28,25 +29,49 @@ function RequestPage() {
     <RequestsLayout>
       <Card className="w-full mx-6">
         <CardHeader>
-          <div className="flex flex-row space-x-6 justify-between">
-            <div className="">
-              {/* <CardTitle className="pb-3">Requests</CardTitle> */}
+          <div className="flex flex-row  items-center justify-between ">
+            {/* Request Button and View Request */}
+            <div>
+              <div className="flex flex-col  ">
+                <div>
+                  <RequestDrawer />
+                </div>
 
-              {/* Request Buttons */}
-              <RequestDrawer />
+                <Link href="/request-tracker/workflow">
+                  <Button
+                    variant="outline"
+                    className="bg-blue-800 text-white"
+                    onClick={() => handleLinkClick("/request-tracker/workflow")}
+                  >
+                    Deliverables
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-center">
+              <TaskSheet />
               {selectedRow && <RequestDialog />}
             </div>
 
-            <div className="">
-              {/* <CardTitle className="pb-3">Workflows</CardTitle> */}
-              {/* Workflow Buttons */}
+            {/* Workflow Button */}
+            <div className="flex flex-col  ">
               <Link href="/request-tracker/workflow">
                 <Button
                   variant="outline"
                   className="bg-blue-800 text-white"
                   onClick={() => handleLinkClick("/request-tracker/workflow")}
                 >
-                  View Workflows
+                  Workflows
+                </Button>
+              </Link>
+              <Link href="/request-tracker/workflow">
+                <Button
+                  variant="outline"
+                  className="bg-blue-800 text-white"
+                  onClick={() => handleLinkClick("/request-tracker/workflow")}
+                >
+                  Shipments
                 </Button>
               </Link>
             </div>
