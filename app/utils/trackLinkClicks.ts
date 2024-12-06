@@ -2,7 +2,9 @@
 
 export const trackLinkClick = (route: string) => {
   const clicks = JSON.parse(localStorage.getItem("linkClicks") || "{}");
-  clicks[route] = (clicks[route] || 0) + 1;
+  if (!clicks[route]) {
+    clicks[route] = 1; // Initialize the count to 1
+  }
   localStorage.setItem("linkClicks", JSON.stringify(clicks));
 };
 

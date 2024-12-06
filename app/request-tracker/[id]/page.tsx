@@ -9,7 +9,6 @@ import { RequestTabs } from "../RequestTabs";
 function SingleRequest({ params }: { params: { id: string } }) {
   return (
     <div className="requestBG ">
-      <RequestTrackerNavBar />
       <div className=" flex justify-center items-center  py-4 text-white ">
         <RequestBreadcrumb />
         <h1 className="boldText">Request ID: {params.id}</h1>

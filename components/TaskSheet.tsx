@@ -37,7 +37,9 @@ const TaskSheet: React.FC = () => {
     <div className="pb-2">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button>You have {tasks.length} Pending Actions</Button>
+          <Button variant="outline" className="bg-blue-950 text-white">
+            You have {tasks.length} Pending Actions
+          </Button>
         </SheetTrigger>
 
         <SheetContent>

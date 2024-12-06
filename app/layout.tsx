@@ -5,6 +5,9 @@ import Navbar from "@/components/navbar/Navbar";
 import { RequestProvider, ToastContextProvider } from "./context";
 import { ToastProvider } from "@/components/ui/toast";
 
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SideBar } from "@/components/SideBar";
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -33,9 +36,14 @@ export default function RootLayout({
       >
         <main>
           <Navbar />
+
           <div>
             <ToastContextProvider>
-              <RequestProvider>{children}</RequestProvider>
+              <SidebarProvider>
+                <SideBar />
+                <SidebarTrigger />
+                <RequestProvider>{children}</RequestProvider>
+              </SidebarProvider>
             </ToastContextProvider>
           </div>
         </main>

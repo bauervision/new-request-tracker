@@ -327,3 +327,70 @@ export const rawCols = [
     cellEditorPopup: true, // Ensure the editor is rendered as a popup
   },
 ];
+
+export const deliverableCols = [
+  { field: "title", headerName: "Document Title", type: "string" },
+  { field: "priority", headerName: "Priority", type: "string" },
+  { field: "program", headerName: "Program", type: "string" },
+  { field: "site", headerName: "Site", type: "string" },
+  { field: "number", headerName: "DO Number", filter: "agNumberColumnFilter" },
+  { field: "requester", headerName: "Requester", type: "string" },
+  { field: "id", headerName: "CDRL ID", filter: "agNumberColumnFilter" },
+  {
+    field: "product",
+    editable: true,
+    cellEditor: "agSelectCellEditor",
+    cellEditorParams: {
+      values: [
+        "HPE EL8000 5U CTO Front Cabling Chassis",
+        "Hawkeye III Lite",
+        "Expeditionary Networking and Compute Platform",
+        "Dell Latitude 5430 Rugged",
+        "AC Power Supply, Outdoor, 120W, Switchcraft",
+        "2TB SSD Hard Drive",
+        "128 GB RAM",
+        "16GB RAM",
+      ],
+    },
+  },
+  {
+    field: "status",
+    editable: true,
+    cellEditor: "agSelectCellEditor",
+    cellEditorParams: {
+      values: [
+        "New",
+        "Awaiting Funding",
+        "Review",
+        "Bid",
+        "No Bid",
+        "Pricing",
+        "PCA Review",
+        "Pricing Approved",
+        "Proposal Submitted",
+        "Awarded",
+        "Invoicing",
+        "Complete",
+      ],
+    },
+  },
+  { field: "shipped" },
+
+  { field: "price", filter: "agNumberColumnFilter" },
+  {
+    headerName: "Delivery Date",
+    field: "delivery",
+    editable: true,
+    cellEditor: CustomDateEditor,
+    cellEditorParams: (params) => ({
+      dateFormat: "yyyy-MM-dd",
+      stopEditing: () => {
+        params.api.stopEditing(); // Ensure the grid stops editing mode
+      },
+      onValueChange: (date) => {
+        params.node.setDataValue("delivery", date); // Properly set the value in grid data
+      },
+    }),
+    cellEditorPopup: true, // Ensure the editor is rendered as a popup
+  },
+];
