@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
 import { RequestProvider, ToastContextProvider } from "./context";
-import { ToastProvider } from "@/components/ui/toast";
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SideBar } from "@/components/SideBar";

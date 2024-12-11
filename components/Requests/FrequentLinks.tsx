@@ -22,8 +22,10 @@ const FrequentLinks: React.FC = () => {
   };
 
   return (
-    <div className=" flex space-x-2 flex-col items-center justify-center">
-      <div className="h-2 text-xs pb-4 justify-center">Frequent Links</div>
+    <div className=" gradientBG flex space-x-2 flex-col items-center justify-center  w-full py-2">
+      <div className="h-2 text-xs pb-4 justify-center text-white">
+        Frequent Links
+      </div>
       <div className="flex-row space-x-2">
         {links.map((route) => (
           <Link href={route} key={route}>

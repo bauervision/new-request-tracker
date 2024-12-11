@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 import { GalleryVerticalEnd } from "lucide-react";
 
@@ -22,6 +24,7 @@ import {
   programManagementData,
   tutorialData,
 } from "@/app/request-tracker/requestTrackerData";
+import { handleLinkClick } from "@/app/utils/trackLinkClicks";
 
 // This is sample data.
 const data = {
@@ -51,11 +54,6 @@ const data = {
       url: "#",
       items: inventoryData,
     },
-    {
-      title: "Maintainence",
-      url: "#",
-      items: maintenanceData,
-    },
   ],
 };
 
@@ -66,9 +64,9 @@ export function SideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="#">
+              <a href="#" onClick={() => handleLinkClick("/request-tracker")}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <GalleryVerticalEnd className="size-4" />
+                  <GalleryVerticalEnd className="size-8" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">Catena Request Tracker</span>
@@ -94,7 +92,12 @@ export function SideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     {item.items.map((item) => (
                       <SidebarMenuSubItem key={item.title}>
                         <SidebarMenuSubButton asChild>
-                          <a href={item.url}>{item.title}</a>
+                          <a
+                            href={item.url}
+                            onClick={() => handleLinkClick(`${item.url}`)}
+                          >
+                            {item.title}
+                          </a>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                     ))}
