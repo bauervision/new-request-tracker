@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Navbar from "@/components/navbar/Navbar";
-import { RequestProvider, ToastContextProvider } from "./context";
+import { RequestProvider, ToastContextProvider } from "./context/DataContext";
 
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SideBar } from "@/components/SideBar";
+import { UserProvider } from "./context/UserContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,17 +36,21 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <main>
-          <Navbar />
+          <UserProvider>
+            <ProtectedRoute requiredRoles={["admin", "user"]}>
+              <Navbar />
 
-          <div>
-            <ToastContextProvider>
-              <SidebarProvider>
-                <SideBar />
-                <SidebarTrigger />
-                <RequestProvider>{children}</RequestProvider>
-              </SidebarProvider>
-            </ToastContextProvider>
-          </div>
+              <div>
+                <ToastContextProvider>
+                  <SidebarProvider>
+                    <SideBar />
+                    <SidebarTrigger />
+                    <RequestProvider>{children}</RequestProvider>
+                  </SidebarProvider>
+                </ToastContextProvider>
+              </div>
+            </ProtectedRoute>
+          </UserProvider>
         </main>
       </body>
     </html>

@@ -1,6 +1,6 @@
 // hooks/useFetchWithToast.ts
 
-import { useToast } from "@/app/context";
+import { useToast } from "@/app/context/DataContext";
 
 export const useFetchWithToast = () => {
   const { addToast, updateToast } = useToast();

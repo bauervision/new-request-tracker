@@ -14,7 +14,7 @@ import React, {
 } from "react";
 
 import { rawCols } from "./data.js";
-import { useRequestContext } from "@/app/context";
+import { useRequestContext } from "@/app/context/DataContext";
 import { Skeleton } from "../ui/skeleton";
 
 export interface RowData {

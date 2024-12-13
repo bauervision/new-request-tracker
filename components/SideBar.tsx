@@ -25,6 +25,7 @@ import {
   tutorialData,
 } from "@/app/request-tracker/requestTrackerData";
 import { handleLinkClick } from "@/app/utils/trackLinkClicks";
+import { useUser } from "@/app/context/UserContext";
 
 // This is sample data.
 const data = {
@@ -58,6 +59,25 @@ const data = {
 };
 
 export function SideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useUser();
+
+  // Filter out specific elements in adminData if the user role is not 'admin'
+  const filteredAdminData =
+    user.role === "admin"
+      ? adminData
+      : adminData.filter((item) => item.title === "Account Information"); // Filter out admin section if there are no items to display
+
+  // Filter out admin section if there are no items to display
+  const filteredNavMain = data.navMain
+    .filter(
+      (item) => item.title !== "Administration" || filteredAdminData.length > 0
+    )
+    .map((item) =>
+      item.title === "Administration"
+        ? { ...item, items: filteredAdminData }
+        : item
+    );
+
   return (
     <Sidebar {...props}>
       <SidebarHeader>
@@ -80,7 +100,7 @@ export function SideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {data.navMain.map((item) => (
+            {filteredNavMain.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild>
                   <a href={item.url} className="font-medium">
@@ -89,14 +109,14 @@ export function SideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenuButton>
                 {item.items?.length ? (
                   <SidebarMenuSub>
-                    {item.items.map((item) => (
-                      <SidebarMenuSubItem key={item.title}>
+                    {item.items.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton asChild>
                           <a
-                            href={item.url}
-                            onClick={() => handleLinkClick(`${item.url}`)}
+                            href={subItem.url}
+                            onClick={() => handleLinkClick(`${subItem.url}`)}
                           >
-                            {item.title}
+                            {subItem.title}
                           </a>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
