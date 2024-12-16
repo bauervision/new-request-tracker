@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SideBar } from "@/components/SideBar";
 import { UserProvider } from "./context/UserContext";
+import { WorkflowProvider } from "./context/WorkflowContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -45,7 +46,9 @@ export default function RootLayout({
                   <SidebarProvider>
                     <SideBar />
                     <SidebarTrigger />
-                    <RequestProvider>{children}</RequestProvider>
+                    <WorkflowProvider>
+                      <RequestProvider>{children}</RequestProvider>
+                    </WorkflowProvider>
                   </SidebarProvider>
                 </ToastContextProvider>
               </div>

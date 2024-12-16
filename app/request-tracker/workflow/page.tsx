@@ -1,16 +1,24 @@
 "use client";
 
-import WorkflowEditor from "@/components/Workflows/workflow-editor";
 import RequestsLayout from "@/app/request-tracker/RequestsLayout";
 import React from "react";
+import { WorkflowProvider } from "../../context/WorkflowContext";
+import WorkflowComponent from "@/components/Workflows/WorkflowComponent";
 
 import { ListItem } from "./WorkflowItem";
+import WorkflowDropdown from "@/components/Workflows/SavedWorkflowsDropdown";
 
 function Workflows() {
   const initialItems: ListItem[] = [];
   return (
-    <RequestsLayout title="Catēna Workflow Management">
-      <WorkflowEditor initialItems={initialItems} />
+    <RequestsLayout
+      title="Catēna Workflow Management"
+      pageComponents={[<WorkflowDropdown />]}
+    >
+      {/* <WorkflowEditor initialItems={initialItems} /> */}
+      <WorkflowProvider>
+        <WorkflowComponent />
+      </WorkflowProvider>
     </RequestsLayout>
   );
 }
