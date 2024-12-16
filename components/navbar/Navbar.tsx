@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import "./Navbar.css";
-import RoleDropdown from "../RoleDropDown"; // Ensure this path is correct
+import RoleDropdown from "../RoleDropdown"; // Ensure this path is correct
 import { useUser } from "@/app/context/UserContext";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/compat/router"; // Import useRouter
 
 // dynamic style: inactive route
 const inactiveHeaderStyle = {
@@ -12,6 +14,28 @@ const inactiveHeaderStyle = {
 
 function Navbar() {
   const { user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const handleRouteChange = () => {
+      setIsLoading(true);
+    };
+
+    const handleRouteComplete = () => {
+      setIsLoading(false);
+    };
+
+    router?.events.on("routeChangeStart", handleRouteChange);
+    router?.events.on("routeChangeComplete", handleRouteComplete);
+    router?.events.on("routeChangeError", handleRouteComplete);
+
+    return () => {
+      router?.events.off("routeChangeStart", handleRouteChange);
+      router?.events.off("routeChangeComplete", handleRouteComplete);
+      router?.events.off("routeChangeError", handleRouteComplete);
+    };
+  }, [router?.events]);
 
   return (
     <div className="Header border-b" data-testid="Header">
@@ -63,7 +87,7 @@ function Navbar() {
           data-testid={`Header role-switch`}
         >
           <span>{user.name}</span>
-          <RoleDropdown />
+          {isLoading ? <div>Loading...</div> : <RoleDropdown />}
         </div>
       </div>
     </div>

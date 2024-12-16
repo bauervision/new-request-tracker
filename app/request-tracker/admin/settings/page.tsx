@@ -3,11 +3,12 @@ import RequestsLayout from "../../RequestsLayout";
 
 function AdminSettingsPage() {
   return (
-    <RequestsLayout
-      title="Catēna Administration"
-      description="Request Tracker Settings"
-    >
-      Request Tracker Settings Data
+    <RequestsLayout title="Catēna Administration">
+      <div className="flex h-screen items-start justify-center">
+        <div className="text-center text-lg font-semibold">
+          Request Tracker Settings Data
+        </div>
+      </div>
     </RequestsLayout>
   );
 }

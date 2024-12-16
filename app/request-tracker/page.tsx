@@ -17,7 +17,6 @@ function RequestPage() {
   return (
     <RequestsLayout
       title="Requests"
-      description="Central point for tracking all requests"
       pageComponents={[
         <RequestDrawer />,
         selectedRow && <RequestDialog />,

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, createContext, useContext, ReactNode } from "react";
+import React, {
+  useState,
+  createContext,
+  useContext,
+  ReactNode,
+  useEffect,
+} from "react";
 
 interface User {
   name: string;
@@ -29,7 +35,6 @@ const useUser = () => {
   if (!context) {
     throw new Error("useUser must be used within a UserProvider");
   }
-
   return context;
 };
 

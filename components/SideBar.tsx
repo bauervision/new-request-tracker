@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
+import React from "react";
 import { GalleryVerticalEnd } from "lucide-react";
-
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +26,6 @@ import {
 import { handleLinkClick } from "@/app/utils/trackLinkClicks";
 import { useUser } from "@/app/context/UserContext";
 
-// This is sample data.
 const data = {
   navMain: [
     {
@@ -60,14 +58,18 @@ const data = {
 
 export function SideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser();
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Filter out specific elements in adminData if the user role is not 'admin'
   const filteredAdminData =
     user.role === "admin"
       ? adminData
-      : adminData.filter((item) => item.title === "Account Information"); // Filter out admin section if there are no items to display
+      : adminData.filter((item) => item.title === "Account Information");
 
-  // Filter out admin section if there are no items to display
   const filteredNavMain = data.navMain
     .filter(
       (item) => item.title !== "Administration" || filteredAdminData.length > 0
@@ -77,6 +79,8 @@ export function SideBar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ? { ...item, items: filteredAdminData }
         : item
     );
+
+  if (!isMounted) return null;
 
   return (
     <Sidebar {...props}>

@@ -9,10 +9,7 @@ import { ListItem } from "./WorkflowItem";
 function Workflows() {
   const initialItems: ListItem[] = [];
   return (
-    <RequestsLayout
-      title="Catēna Workflow Management"
-      description="View and Update your Workflow"
-    >
+    <RequestsLayout title="Catēna Workflow Management">
       <WorkflowEditor initialItems={initialItems} />
     </RequestsLayout>
   );

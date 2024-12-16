@@ -4,12 +4,15 @@ import Image from "next/image";
 import Background from "/assets/branding/visionary.png";
 import { clearLinkClicks, getFrequentLinks } from "./utils/trackLinkClicks";
 import { useEffect, useState } from "react";
+import { useUser } from "./context/UserContext";
 
 export default function Home() {
+  const { setUser } = useUser();
   const [links, setLinks] = useState<string[]>([]);
   useEffect(() => {
     clearLinkClicks(); // Clear the link clicks when the component mounts
     setLinks(getFrequentLinks());
+    localStorage.clear();
   }, []);
 
   return (
