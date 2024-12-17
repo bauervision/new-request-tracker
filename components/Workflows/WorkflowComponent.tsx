@@ -1,12 +1,9 @@
-// WorkflowComponent.tsx
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { useWorkflow } from "@/app/context/WorkflowContext";
 import workflow from "@/app/workflow-engine/workflow";
-import SavedWorkflowsDropdown from "./SavedWorkflowsDropdown";
 import { WorkflowItemState } from "@/app/context/WorkflowContext";
 
-const WorkflowComponent: React.FC = () => {
+const WorkflowComponent: React.FC = memo(() => {
   const {
     state,
     dispatch,
@@ -16,12 +13,16 @@ const WorkflowComponent: React.FC = () => {
     loading,
     savedWorkflows,
   } = useWorkflow();
+
   const [newItemName, setNewItemName] = useState<string>("");
   const [workflowName, setWorkflowName] = useState<string>("");
 
+  // Removed redundant setLoading(true) effect
   useEffect(() => {
-    setLoading(true);
-  }, [setLoading]);
+    if (!loading && workflowName) {
+      saveWorkflow(workflowName);
+    }
+  }, [loading, saveWorkflow, workflowName]);
 
   const handleTransition = (itemId: string, action: string) => {
     dispatch({ type: "transition", itemId, action });
@@ -52,7 +53,9 @@ const WorkflowComponent: React.FC = () => {
   };
 
   const handleSetWorkflowName = () => {
-    setLoading(false);
+    if (workflowName) {
+      setLoading(false); // Set loading to false once the workflow starts
+    }
   };
 
   const renderItem = (item: WorkflowItemState) => (
@@ -104,7 +107,9 @@ const WorkflowComponent: React.FC = () => {
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
-      <h1 className="text-2xl font-bold text-center mb-4">Workflow</h1>
+      <h1 className="text-2xl font-bold text-center mb-4">
+        {workflowName || "Workflow"}
+      </h1>
       {loading ? (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -167,6 +172,5 @@ const WorkflowComponent: React.FC = () => {
       )}
     </div>
   );
-};
-
+});
 export default WorkflowComponent;

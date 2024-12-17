@@ -7,9 +7,9 @@ import React, {
   ReactNode,
   Dispatch,
   useState,
-  useEffect,
+  useCallback,
 } from "react";
-import workflow from "@/app/workflow-engine/workflow";
+import workflow from "../workflow-engine/workflow";
 
 export interface WorkflowItemState {
   id: string;
@@ -218,10 +218,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
 
-  useEffect(() => {
-    setSavedWorkflows(getSavedWorkflows());
-  }, []);
-
   const addItem = (name: string) => {
     const newId = `item-${Date.now()}`;
     dispatch({ type: "initialize", itemId: newId, name });
@@ -240,6 +236,8 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
         workflowState: JSON.parse(savedWorkflow),
       });
       setLoading(false);
+      // You may not need to call setSavedWorkflows here unless you want to
+      // refresh the list of workflows immediately after loading
     }
   };
 

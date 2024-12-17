@@ -15,10 +15,7 @@ function Workflows() {
       title="Catēna Workflow Management"
       pageComponents={[<WorkflowDropdown />]}
     >
-      {/* <WorkflowEditor initialItems={initialItems} /> */}
-      <WorkflowProvider>
-        <WorkflowComponent />
-      </WorkflowProvider>
+      <WorkflowComponent />
     </RequestsLayout>
   );
 }

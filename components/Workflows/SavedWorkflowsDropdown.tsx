@@ -1,23 +1,31 @@
-// SavedWorkflowsDropdown.tsx
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useWorkflow } from "@/app/context/WorkflowContext";
 
 const SavedWorkflowsDropdown: React.FC = () => {
   const { getSavedWorkflows, loadWorkflow, deleteWorkflow } = useWorkflow();
   const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
+  const workflowsLoaded = useRef(false); // Track if workflows are loaded initially
 
   useEffect(() => {
-    setSavedWorkflows(getSavedWorkflows());
-  }, [getSavedWorkflows]);
+    if (!workflowsLoaded.current) {
+      // Fetch workflows only once
+      const workflows = getSavedWorkflows();
+      setSavedWorkflows(workflows);
+      workflowsLoaded.current = true; // Mark workflows as loaded
+    }
+  }, [getSavedWorkflows]); // Only run on mount
 
   const handleLoadWorkflow = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    loadWorkflow(e.target.value);
+    const workflowName = e.target.value;
+    if (workflowName) {
+      loadWorkflow(workflowName); // Load the workflow
+    }
   };
 
   const handleDeleteWorkflow = (workflowName: string) => {
     deleteWorkflow(workflowName);
-    setSavedWorkflows(getSavedWorkflows());
+    const updatedWorkflows = getSavedWorkflows();
+    setSavedWorkflows(updatedWorkflows); // Update workflows after delete
   };
 
   return (
