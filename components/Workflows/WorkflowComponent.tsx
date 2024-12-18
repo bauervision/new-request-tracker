@@ -15,6 +15,16 @@ const WorkflowComponent: React.FC = memo(() => {
     setCurrentWorkflowName,
   } = useWorkflow();
   const [newItemName, setNewItemName] = useState<string>("");
+  const [editableItemId, setEditableItemId] = useState<string | null>(null);
+  const [newWorkflowName, setNewWorkflowName] = useState<string>("");
+
+  // Function to handle creating a new workflow
+  const handleCreateNewWorkflow = () => {
+    if (!newWorkflowName.trim()) return; // Ensure a valid workflow name is provided
+    setCurrentWorkflowName(newWorkflowName); // Set the new workflow name
+    setLoading(false); // Ensure loading is set to false
+    setNewWorkflowName(""); // Clear the workflow name input
+  };
 
   const handleSaveWorkflow = () => {
     if (currentWorkflowName) {
@@ -40,10 +50,13 @@ const WorkflowComponent: React.FC = memo(() => {
   const handleTransition = (itemId: string, action: string) => {
     dispatch({ type: "transition", itemId, action });
   };
+
   const handleInsertAfter = (itemId: string, name: string) => {
     const newId = `item-${Date.now()}`;
     dispatch({ type: "insertAfter", itemId, newItemId: newId, name });
+    setEditableItemId(newId); // Set the new item ID for editing
   };
+
   const handleDeleteStep = (itemId: string) => {
     dispatch({ type: "deleteStep", itemId });
   };
@@ -51,57 +64,102 @@ const WorkflowComponent: React.FC = memo(() => {
     dispatch({ type: "removeAllBelow", itemId });
   };
 
-  const renderItem = (item: WorkflowItemState) => (
-    <li key={item.id} className="mb-4 p-4 border border-gray-300 rounded-md">
-      <div className="flex items-center space-x-4">
-        <p className="text-lg">
-          <span className="font-semibold">{item.id}</span>
-        </p>
-        <p className="text-lg">
-          <span className="font-semibold">{item.name}</span>
-        </p>
-        <p className="text-lg">
-          Current State:{" "}
-          <span className="font-semibold">{item.currentState}</span>
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 mt-2">
-        {Object.keys(workflow.states[item.currentState].on).map((action) => (
+  useEffect(() => {
+    if (state.rootItem && loading) {
+      setLoading(false); // Set loading to false after loading workflow
+    }
+  }, [state.rootItem, loading, setLoading]);
+
+  const renderItem = (itemId: string): JSX.Element => {
+    if (!state.items || !state.items[itemId]) {
+      console.log("Item not found:", itemId); // Add this for debugging
+      return <></>;
+    } // Safeguard against undefined
+    const item = state.items[itemId]; // Resolve the item by its ID
+    console.log("Rendering Item:", item); // Log the item
+    if (!item) return <></>; // If the item does not exist, return an empty fragment
+
+    return (
+      <li key={item.id} className="mb-4 p-4 border border-gray-300 rounded-md">
+        <div className="flex space-x-4 items-center">
+          {" "}
+          {/* New flex container */}
+          <p className="text-lg">
+            <span className="font-semibold">ID: {item.id}</span>
+          </p>
+          <p className="text-lg">
+            <span className="font-semibold">Name: {item.name}</span>
+          </p>
+          <p className="text-lg">
+            Current State:{" "}
+            <span className="font-semibold">{item.currentState}</span>
+          </p>
+        </div>
+
+        <div className="flex flex-row space-x-2 mt-2">
+          {Object.keys(workflow.states[item.currentState].on).map((action) => (
+            <button
+              key={action}
+              onClick={() => handleTransition(item.id, action)}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            >
+              {action}
+            </button>
+          ))}
           <button
-            key={action}
-            onClick={() => handleTransition(item.id, action)}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition whitespace-nowrap"
+            onClick={() => handleInsertAfter(item.id, newItemName)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
           >
-            {action}
+            Insert After
           </button>
-        ))}
-        <button
-          onClick={() => handleInsertAfter(item.id, newItemName)}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition whitespace-nowrap"
-        >
-          Insert After
-        </button>
-        <button
-          onClick={() => handleDeleteStep(item.id)}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition whitespace-nowrap"
-        >
-          Delete Step
-        </button>
-        <button
-          onClick={() => handleRemoveAllBelow(item.id)}
-          className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition whitespace-nowrap"
-        >
-          Remove All Below
-        </button>
-      </div>
-      {item.children.length > 0 && (
-        <ul className="pl-5 list-disc">{item.children.map(renderItem)}</ul>
-      )}
-    </li>
+          <button
+            onClick={() => handleDeleteStep(item.id)}
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+          >
+            Delete Step
+          </button>
+          <button
+            onClick={() => handleRemoveAllBelow(item.id)}
+            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+          >
+            Remove All Below
+          </button>
+        </div>
+
+        {item.children.length > 0 && (
+          <ul className="pl-5 list-disc">
+            {item.children.map((childId) => renderItem(childId))}{" "}
+            {/* Map over child IDs */}
+          </ul>
+        )}
+      </li>
+    );
+  };
+
+  // Render the "Create New Workflow" section if no workflow is loaded
+  const renderCreateNewWorkflowOption = () => (
+    <div className="flex justify-center mt-6 space-x-4">
+      <input
+        type="text"
+        value={newWorkflowName}
+        onChange={(e) => setNewWorkflowName(e.target.value)}
+        className="border border-gray-300 rounded-lg p-2"
+        placeholder="Enter workflow name"
+      />
+      <button
+        onClick={handleCreateNewWorkflow}
+        disabled={!newWorkflowName.trim()}
+        className={`px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition ${
+          !newWorkflowName.trim() ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+      >
+        Create New Workflow
+      </button>
+    </div>
   );
 
   return (
-    <div className="p-6  mx-auto bg-white rounded-xl shadow-md space-y-4">
+    <div className="p-6 mx-auto bg-white rounded-xl shadow-md space-y-4">
       {/* Header with Workflow Name and Action Buttons */}
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">
@@ -126,27 +184,32 @@ const WorkflowComponent: React.FC = memo(() => {
       </div>
 
       {/* Add New Item Section */}
-      {!loading && (
+      {!loading && currentWorkflowName && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             New Item Name
           </label>
           <input
+            type="text"
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="Item Name"
-            className="block w-full p-2 border border-gray-300 rounded-md mb-2"
+            className="border border-gray-300 rounded-lg p-2 w-full"
+            placeholder="Enter name for new item"
           />
           <button
             onClick={handleAddItem}
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition mt-2"
           >
             Add Item
           </button>
         </div>
       )}
-      {state.rootItem && (
-        <ul className="list-disc pl-5">{renderItem(state.rootItem)}</ul>
+
+      {/* Render Workflow */}
+      {currentWorkflowName ? (
+        <ul>{state.rootItem && renderItem(state.rootItem)}</ul>
+      ) : (
+        renderCreateNewWorkflowOption() // Show the input and button for new workflow
       )}
     </div>
   );

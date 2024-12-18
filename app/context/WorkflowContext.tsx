@@ -7,7 +7,7 @@ import React, {
   ReactNode,
   Dispatch,
   useState,
-  useCallback,
+  useEffect,
 } from "react";
 import workflow from "../workflow-engine/workflow";
 
@@ -15,11 +15,12 @@ export interface WorkflowItemState {
   id: string;
   name: string;
   currentState: string;
-  children: WorkflowItemState[];
+  children: string[]; // Store child IDs
 }
 
 interface WorkflowState {
-  rootItem?: WorkflowItemState;
+  rootItem?: string; // Root item ID
+  items: Record<string, WorkflowItemState>; // Map of item IDs to their states
 }
 
 interface InitializeAction {
@@ -51,6 +52,12 @@ interface RemoveAllBelowAction {
   itemId: string;
 }
 
+interface UpdateName {
+  type: "updateName";
+  name: string;
+  itemId: string;
+}
+
 interface LoadWorkflowAction {
   type: "loadWorkflow";
   workflowState: WorkflowState;
@@ -62,6 +69,7 @@ type WorkflowAction =
   | InsertAfterAction
   | DeleteStepAction
   | RemoveAllBelowAction
+  | UpdateName
   | LoadWorkflowAction;
 
 interface WorkflowContextType {
@@ -75,140 +83,148 @@ interface WorkflowContextType {
   setLoading: (isLoading: boolean) => void;
   loading: boolean;
   savedWorkflows: string[];
-  currentWorkflowName: string; // Add currentWorkflowName
-  setCurrentWorkflowName: (name: string) => void; // Function to update it
+  currentWorkflowName: string;
+  setCurrentWorkflowName: (name: string) => void;
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
   undefined
 );
 
+const initialState: WorkflowState = {
+  rootItem: undefined,
+  items: {},
+};
+
 const workflowReducer = (
-  state: WorkflowState,
+  state: WorkflowState = { rootItem: undefined, items: {} }, // Ensure items is initialized
   action: WorkflowAction
 ): WorkflowState => {
   switch (action.type) {
-    case "initialize":
+    case "initialize": {
+      const newItem: WorkflowItemState = {
+        id: action.itemId,
+        name: action.name,
+        currentState: workflow.initialState,
+        children: [],
+      };
       if (!state.rootItem) {
         return {
-          rootItem: {
-            id: action.itemId,
-            name: action.name,
-            currentState: workflow.initialState,
-            children: [],
+          rootItem: newItem.id, // Set rootItem as the new item's ID
+          items: {
+            [newItem.id]: newItem,
           },
         };
-      } else {
-        const addItemToLastChild = (
-          item: WorkflowItemState
-        ): WorkflowItemState => {
-          if (item.children.length === 0) {
-            return {
-              ...item,
-              children: [
-                ...item.children,
-                {
-                  id: action.itemId,
-                  name: action.name,
-                  currentState: workflow.initialState,
-                  children: [],
-                },
-              ],
-            };
-          } else {
-            return {
-              ...item,
-              children: item.children.map((child, index) =>
-                index === item.children.length - 1
-                  ? addItemToLastChild(child)
-                  : child
-              ),
-            };
-          }
-        };
-        return {
-          rootItem: addItemToLastChild(state.rootItem),
-        };
       }
+      return state; // Do nothing if root already exists
+    }
 
-    case "transition":
-      const updateItemState = (item: WorkflowItemState): WorkflowItemState => {
-        if (item.id === action.itemId) {
-          const { currentState } = item;
-          const transitions = workflow.states[currentState]?.on;
+    case "transition": {
+      const currentItem = state.items[action.itemId];
+      if (!currentItem) return state;
 
-          if (transitions && transitions[action.action]) {
-            return { ...item, currentState: transitions[action.action] };
-          }
-        }
-        return {
-          ...item,
-          children: item.children.map(updateItemState),
-        };
-      };
+      const transitions = workflow.states[currentItem.currentState]?.on;
+      if (!transitions || !transitions[action.action]) return state;
+
       return {
-        rootItem: state.rootItem ? updateItemState(state.rootItem) : undefined,
+        ...state,
+        items: {
+          ...state.items,
+          [action.itemId]: {
+            ...currentItem,
+            currentState: transitions[action.action],
+          },
+        },
+      };
+    }
+
+    case "insertAfter": {
+      const parentItem = state.items[action.itemId];
+      if (!parentItem) return state;
+
+      const newItem: WorkflowItemState = {
+        id: action.newItemId,
+        name: action.name,
+        currentState: "draft",
+        children: [],
       };
 
-    case "insertAfter":
-      const addItemAfter = (item: WorkflowItemState): WorkflowItemState => {
-        if (item.id === action.itemId) {
-          return {
+      return {
+        ...state,
+        items: {
+          ...state.items,
+          [parentItem.id]: {
+            ...parentItem,
+            children: [...parentItem.children, newItem.id], // Add new item's ID
+          },
+          [newItem.id]: newItem, // Add the new item itself
+        },
+      };
+    }
+
+    case "deleteStep": {
+      const { [action.itemId]: _, ...remainingItems } = state.items;
+
+      const removeChildFromParent = (
+        items: Record<string, WorkflowItemState>
+      ) =>
+        Object.entries(items).reduce((acc, [id, item]) => {
+          acc[id] = {
             ...item,
-            children: [
-              ...item.children,
-              {
-                id: action.newItemId,
-                name: action.name,
-                currentState: workflow.initialState,
-                children: [],
-              },
-            ],
+            children: item.children.filter(
+              (childId) => childId !== action.itemId
+            ),
           };
-        }
-        return {
-          ...item,
-          children: item.children.map(addItemAfter),
-        };
-      };
+          return acc;
+        }, {} as Record<string, WorkflowItemState>);
+
       return {
-        rootItem: state.rootItem ? addItemAfter(state.rootItem) : undefined,
+        ...state,
+        items: removeChildFromParent(remainingItems),
+      };
+    }
+
+    case "removeAllBelow": {
+      const removeChildrenRecursively = (itemId: string) => {
+        const item = state.items[itemId];
+        if (!item) return;
+
+        item.children.forEach(removeChildrenRecursively);
+        delete state.items[itemId];
       };
 
-    case "deleteStep":
-      const deleteItem = (
-        item: WorkflowItemState
-      ): WorkflowItemState | undefined => {
-        if (item.id === action.itemId) {
-          return undefined;
-        }
-        return {
-          ...item,
-          children: item.children
-            .map(deleteItem)
-            .filter(Boolean) as WorkflowItemState[],
-        };
-      };
-      return {
-        rootItem: state.rootItem ? deleteItem(state.rootItem) : undefined,
-      };
+      removeChildrenRecursively(action.itemId);
 
-    case "removeAllBelow":
-      const removeChildren = (item: WorkflowItemState): WorkflowItemState => {
-        if (item.id === action.itemId) {
-          return { ...item, children: [] };
-        }
-        return {
-          ...item,
-          children: item.children.map(removeChildren),
-        };
-      };
       return {
-        rootItem: state.rootItem ? removeChildren(state.rootItem) : undefined,
+        ...state,
+        items: {
+          ...state.items,
+          [action.itemId]: {
+            ...state.items[action.itemId],
+            children: [],
+          },
+        },
       };
+    }
 
     case "loadWorkflow":
       return action.workflowState;
+
+    case "updateName": {
+      const currentItem = state.items[action.itemId];
+      if (!currentItem) return state;
+
+      return {
+        ...state,
+        items: {
+          ...state.items,
+          [action.itemId]: {
+            ...currentItem,
+            name: action.name,
+          },
+        },
+      };
+    }
 
     default:
       return state;
@@ -216,7 +232,10 @@ const workflowReducer = (
 };
 
 export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(workflowReducer, {});
+  const [state, dispatch] = useReducer(workflowReducer, {
+    rootItem: undefined,
+    items: {}, // Initialize items as an empty object
+  });
   const [loading, setLoading] = useState(true);
   const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
   const [currentWorkflowName, setCurrentWorkflowName] = useState<string>("");
@@ -227,7 +246,6 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const saveWorkflow = (name: string) => {
-    console.log(JSON.stringify(state));
     localStorage.setItem(`workflow_${name}`, JSON.stringify(state));
     setSavedWorkflows(getSavedWorkflows());
   };
@@ -235,13 +253,30 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const loadWorkflow = (workflowName: string) => {
     const savedWorkflow = localStorage.getItem(`workflow_${workflowName}`);
     if (savedWorkflow) {
+      const workflowState = JSON.parse(savedWorkflow);
+
+      // Ensure all items are added to state.items
+      const updatedItems = { ...workflowState.items };
+      if (workflowState.rootItem) {
+        const addItemRecursively = (itemId: string) => {
+          const item = updatedItems[itemId];
+          if (item) {
+            item.children.forEach((childId: string) =>
+              addItemRecursively(childId)
+            );
+          }
+        };
+        addItemRecursively(workflowState.rootItem);
+      }
+
       dispatch({
         type: "loadWorkflow",
-        workflowState: JSON.parse(savedWorkflow),
+        workflowState: {
+          rootItem: workflowState.rootItem,
+          items: updatedItems,
+        },
       });
       setLoading(false);
-      // You may not need to call setSavedWorkflows here unless you want to
-      // refresh the list of workflows immediately after loading
     }
   };
 
@@ -257,6 +292,16 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
     return keys.map((key) => key.replace("workflow_", ""));
   };
 
+  useEffect(() => {
+    if (currentWorkflowName) {
+      loadWorkflow(currentWorkflowName);
+    }
+  }, [currentWorkflowName]);
+
+  useEffect(() => {
+    console.log("State after load:", state); // Ensure state has the correct items
+  }, [state]);
+
   return (
     <WorkflowContext.Provider
       value={{
@@ -270,8 +315,8 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
         setLoading,
         loading,
         savedWorkflows,
-        currentWorkflowName, // Add currentWorkflowName
-        setCurrentWorkflowName, // Function to update it
+        currentWorkflowName,
+        setCurrentWorkflowName,
       }}
     >
       {children}
