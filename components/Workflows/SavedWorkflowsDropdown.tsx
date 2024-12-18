@@ -2,30 +2,35 @@ import React, { useEffect, useState, useRef } from "react";
 import { useWorkflow } from "@/app/context/WorkflowContext";
 
 const SavedWorkflowsDropdown: React.FC = () => {
-  const { getSavedWorkflows, loadWorkflow, deleteWorkflow } = useWorkflow();
+  const {
+    getSavedWorkflows,
+    loadWorkflow,
+    deleteWorkflow,
+    setCurrentWorkflowName,
+  } = useWorkflow();
   const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
-  const workflowsLoaded = useRef(false); // Track if workflows are loaded initially
+  const workflowsLoaded = useRef(false);
 
   useEffect(() => {
     if (!workflowsLoaded.current) {
-      // Fetch workflows only once
       const workflows = getSavedWorkflows();
       setSavedWorkflows(workflows);
-      workflowsLoaded.current = true; // Mark workflows as loaded
+      workflowsLoaded.current = true;
     }
-  }, [getSavedWorkflows]); // Only run on mount
+  }, [getSavedWorkflows]);
 
   const handleLoadWorkflow = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const workflowName = e.target.value;
     if (workflowName) {
-      loadWorkflow(workflowName); // Load the workflow
+      loadWorkflow(workflowName);
+      setCurrentWorkflowName(workflowName); // Update current workflow name
     }
   };
 
   const handleDeleteWorkflow = (workflowName: string) => {
     deleteWorkflow(workflowName);
     const updatedWorkflows = getSavedWorkflows();
-    setSavedWorkflows(updatedWorkflows); // Update workflows after delete
+    setSavedWorkflows(updatedWorkflows);
   };
 
   return (
@@ -44,19 +49,6 @@ const SavedWorkflowsDropdown: React.FC = () => {
           </option>
         ))}
       </select>
-      <ul className="list-disc pl-5">
-        {savedWorkflows.map((name) => (
-          <li key={name} className="flex items-center space-x-2">
-            <span>{name}</span>
-            <button
-              onClick={() => handleDeleteWorkflow(name)}
-              className="px-2 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 };

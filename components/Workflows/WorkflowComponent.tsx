@@ -1,7 +1,6 @@
 import React, { useState, useEffect, memo } from "react";
-import { useWorkflow } from "@/app/context/WorkflowContext";
+import { useWorkflow, WorkflowItemState } from "@/app/context/WorkflowContext";
 import workflow from "@/app/workflow-engine/workflow";
-import { WorkflowItemState } from "@/app/context/WorkflowContext";
 
 const WorkflowComponent: React.FC = memo(() => {
   const {
@@ -9,36 +8,27 @@ const WorkflowComponent: React.FC = memo(() => {
     dispatch,
     addItem,
     saveWorkflow,
+    deleteWorkflow,
     setLoading,
     loading,
-    savedWorkflows,
+    currentWorkflowName,
+    setCurrentWorkflowName,
   } = useWorkflow();
-
   const [newItemName, setNewItemName] = useState<string>("");
-  const [workflowName, setWorkflowName] = useState<string>("");
 
-  // Removed redundant setLoading(true) effect
-  useEffect(() => {
-    if (!loading && workflowName) {
-      saveWorkflow(workflowName);
+  const handleSaveWorkflow = () => {
+    if (currentWorkflowName) {
+      saveWorkflow(currentWorkflowName);
+      alert("Workflow saved successfully!");
     }
-  }, [loading, saveWorkflow, workflowName]);
-
-  const handleTransition = (itemId: string, action: string) => {
-    dispatch({ type: "transition", itemId, action });
   };
 
-  const handleInsertAfter = (itemId: string, name: string) => {
-    const newId = `item-${Date.now()}`;
-    dispatch({ type: "insertAfter", itemId, newItemId: newId, name });
-  };
-
-  const handleDeleteStep = (itemId: string) => {
-    dispatch({ type: "deleteStep", itemId });
-  };
-
-  const handleRemoveAllBelow = (itemId: string) => {
-    dispatch({ type: "removeAllBelow", itemId });
+  const handleDeleteWorkflow = () => {
+    if (currentWorkflowName) {
+      deleteWorkflow(currentWorkflowName);
+      setCurrentWorkflowName(""); // Clear the current workflow name
+      alert("Workflow deleted successfully!");
+    }
   };
 
   const handleAddItem = () => {
@@ -47,54 +37,59 @@ const WorkflowComponent: React.FC = memo(() => {
     setNewItemName("");
   };
 
-  const handleSaveWorkflow = () => {
-    if (!workflowName) return;
-    saveWorkflow(workflowName);
+  const handleTransition = (itemId: string, action: string) => {
+    dispatch({ type: "transition", itemId, action });
   };
-
-  const handleSetWorkflowName = () => {
-    if (workflowName) {
-      setLoading(false); // Set loading to false once the workflow starts
-    }
+  const handleInsertAfter = (itemId: string, name: string) => {
+    const newId = `item-${Date.now()}`;
+    dispatch({ type: "insertAfter", itemId, newItemId: newId, name });
+  };
+  const handleDeleteStep = (itemId: string) => {
+    dispatch({ type: "deleteStep", itemId });
+  };
+  const handleRemoveAllBelow = (itemId: string) => {
+    dispatch({ type: "removeAllBelow", itemId });
   };
 
   const renderItem = (item: WorkflowItemState) => (
     <li key={item.id} className="mb-4 p-4 border border-gray-300 rounded-md">
-      <p className="text-lg">
-        Item ID: <span className="font-semibold">{item.id}</span>
-      </p>
-      <p className="text-lg">
-        Name: <span className="font-semibold">{item.name}</span>
-      </p>
-      <p className="text-lg">
-        Current State:{" "}
-        <span className="font-semibold">{item.currentState}</span>
-      </p>
-      <div className="flex flex-col space-y-2">
+      <div className="flex items-center space-x-4">
+        <p className="text-lg">
+          <span className="font-semibold">{item.id}</span>
+        </p>
+        <p className="text-lg">
+          <span className="font-semibold">{item.name}</span>
+        </p>
+        <p className="text-lg">
+          Current State:{" "}
+          <span className="font-semibold">{item.currentState}</span>
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2 mt-2">
         {Object.keys(workflow.states[item.currentState].on).map((action) => (
           <button
             key={action}
             onClick={() => handleTransition(item.id, action)}
-            className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition whitespace-nowrap"
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition whitespace-nowrap"
           >
             {action}
           </button>
         ))}
         <button
           onClick={() => handleInsertAfter(item.id, newItemName)}
-          className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition whitespace-nowrap"
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition whitespace-nowrap"
         >
           Insert After
         </button>
         <button
           onClick={() => handleDeleteStep(item.id)}
-          className="w-full px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition whitespace-nowrap"
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition whitespace-nowrap"
         >
           Delete Step
         </button>
         <button
           onClick={() => handleRemoveAllBelow(item.id)}
-          className="w-full px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition whitespace-nowrap"
+          className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition whitespace-nowrap"
         >
           Remove All Below
         </button>
@@ -106,71 +101,55 @@ const WorkflowComponent: React.FC = memo(() => {
   );
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
-      <h1 className="text-2xl font-bold text-center mb-4">
-        {workflowName || "Workflow"}
-      </h1>
-      {loading ? (
+    <div className="p-6  mx-auto bg-white rounded-xl shadow-md space-y-4">
+      {/* Header with Workflow Name and Action Buttons */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">
+          {currentWorkflowName || "New Workflow"}
+        </h1>
+        {currentWorkflowName && (
+          <div className="flex space-x-2">
+            <button
+              onClick={handleSaveWorkflow}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            >
+              Save
+            </button>
+            <button
+              onClick={handleDeleteWorkflow}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+            >
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Add New Item Section */}
+      {!loading && (
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Workflow Name
+            New Item Name
           </label>
           <input
-            value={workflowName}
-            onChange={(e) => setWorkflowName(e.target.value)}
-            placeholder="Workflow Name"
+            value={newItemName}
+            onChange={(e) => setNewItemName(e.target.value)}
+            placeholder="Item Name"
             className="block w-full p-2 border border-gray-300 rounded-md mb-2"
           />
           <button
-            onClick={handleSetWorkflowName}
-            className="w-full px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+            onClick={handleAddItem}
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
           >
-            Start New Workflow
+            Add Item
           </button>
         </div>
-      ) : (
-        <>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Item Name
-            </label>
-            <input
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Item Name"
-              className="block w-full p-2 border border-gray-300 rounded-md mb-2"
-            />
-            <button
-              onClick={handleAddItem}
-              className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-            >
-              Add Item
-            </button>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Save Workflow
-            </label>
-            <input
-              value={workflowName}
-              onChange={(e) => setWorkflowName(e.target.value)}
-              placeholder="Workflow Name"
-              className="block w-full p-2 border border-gray-300 rounded-md mb-2"
-            />
-            <button
-              onClick={handleSaveWorkflow}
-              className="w-full px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
-            >
-              Save Workflow
-            </button>
-          </div>
-
-          {state.rootItem && (
-            <ul className="list-disc pl-5">{renderItem(state.rootItem)}</ul>
-          )}
-        </>
+      )}
+      {state.rootItem && (
+        <ul className="list-disc pl-5">{renderItem(state.rootItem)}</ul>
       )}
     </div>
   );
 });
+
 export default WorkflowComponent;

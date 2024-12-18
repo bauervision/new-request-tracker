@@ -75,6 +75,8 @@ interface WorkflowContextType {
   setLoading: (isLoading: boolean) => void;
   loading: boolean;
   savedWorkflows: string[];
+  currentWorkflowName: string; // Add currentWorkflowName
+  setCurrentWorkflowName: (name: string) => void; // Function to update it
 }
 
 const WorkflowContext = createContext<WorkflowContextType | undefined>(
@@ -217,6 +219,7 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(workflowReducer, {});
   const [loading, setLoading] = useState(true);
   const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
+  const [currentWorkflowName, setCurrentWorkflowName] = useState<string>("");
 
   const addItem = (name: string) => {
     const newId = `item-${Date.now()}`;
@@ -224,6 +227,7 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const saveWorkflow = (name: string) => {
+    console.log(JSON.stringify(state));
     localStorage.setItem(`workflow_${name}`, JSON.stringify(state));
     setSavedWorkflows(getSavedWorkflows());
   };
@@ -266,6 +270,8 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
         setLoading,
         loading,
         savedWorkflows,
+        currentWorkflowName, // Add currentWorkflowName
+        setCurrentWorkflowName, // Function to update it
       }}
     >
       {children}

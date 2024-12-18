@@ -9,7 +9,6 @@ import { ListItem } from "./WorkflowItem";
 import WorkflowDropdown from "@/components/Workflows/SavedWorkflowsDropdown";
 
 function Workflows() {
-  const initialItems: ListItem[] = [];
   return (
     <RequestsLayout
       title="Catēna Workflow Management"
