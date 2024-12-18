@@ -100,6 +100,8 @@ const workflowReducer = (
   state: WorkflowState = { rootItem: undefined, items: {} }, // Ensure items is initialized
   action: WorkflowAction
 ): WorkflowState => {
+  console.log("Reducer received action:", action);
+
   switch (action.type) {
     case "initialize": {
       const newItem: WorkflowItemState = {
@@ -108,15 +110,53 @@ const workflowReducer = (
         currentState: workflow.initialState,
         children: [],
       };
+
       if (!state.rootItem) {
+        // No root, newItem becomes the root
+        console.log("Initializing root item:", newItem.id, newItem.name);
         return {
-          rootItem: newItem.id, // Set rootItem as the new item's ID
+          rootItem: newItem.id,
           items: {
             [newItem.id]: newItem,
           },
         };
+      } else {
+        // Root item exists, find the last item (a leaf) and append newItem
+        console.log("Appending new item:", newItem.id, newItem.name);
+
+        const findLastItem = (
+          items: Record<string, WorkflowItemState>,
+          currentId: string
+        ): string => {
+          const current = items[currentId];
+          if (current.children.length === 0) {
+            // This item has no children, it's a leaf
+            return currentId;
+          } else {
+            // Move deeper into the last child
+            return findLastItem(
+              items,
+              current.children[current.children.length - 1]
+            );
+          }
+        };
+
+        const lastItemId = findLastItem(state.items, state.rootItem!);
+        const lastItem = state.items[lastItemId];
+
+        // Append the new item as a child of the last item
+        return {
+          ...state,
+          items: {
+            ...state.items,
+            [newItem.id]: newItem,
+            [lastItemId]: {
+              ...lastItem,
+              children: [...lastItem.children, newItem.id],
+            },
+          },
+        };
       }
-      return state; // Do nothing if root already exists
     }
 
     case "transition": {
@@ -241,13 +281,16 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   const [currentWorkflowName, setCurrentWorkflowName] = useState<string>("");
 
   const addItem = (name: string) => {
+    console.log("addItem called with name:", name); // Debug
     const newId = `item-${Date.now()}`;
     dispatch({ type: "initialize", itemId: newId, name });
   };
 
   const saveWorkflow = (name: string) => {
+    console.log("Saving workflow:", name, state); // Debugging
     localStorage.setItem(`workflow_${name}`, JSON.stringify(state));
-    setSavedWorkflows(getSavedWorkflows());
+    const updatedSavedWorkflows = getSavedWorkflows(); // Fetch updated workflows after save
+    setSavedWorkflows(updatedSavedWorkflows); // Update state
   };
 
   const loadWorkflow = (workflowName: string) => {
@@ -293,13 +336,12 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    if (currentWorkflowName) {
-      loadWorkflow(currentWorkflowName);
-    }
-  }, [currentWorkflowName]);
+    const workflows = getSavedWorkflows();
+    setSavedWorkflows(workflows);
+  }, []); // Load workflows on initial render
 
   useEffect(() => {
-    console.log("State after load:", state); // Ensure state has the correct items
+    console.log("State after load:", state);
   }, [state]);
 
   return (

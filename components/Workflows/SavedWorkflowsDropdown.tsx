@@ -11,10 +11,11 @@ const SavedWorkflowsDropdown: React.FC = () => {
   const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
   const workflowsLoaded = useRef(false);
 
+  // Load workflows when the component mounts
   useEffect(() => {
     if (!workflowsLoaded.current) {
       const workflows = getSavedWorkflows();
-      setSavedWorkflows(workflows);
+      setSavedWorkflows(workflows); // Update state with saved workflows
       workflowsLoaded.current = true;
     }
   }, [getSavedWorkflows]);
@@ -30,7 +31,7 @@ const SavedWorkflowsDropdown: React.FC = () => {
   const handleDeleteWorkflow = (workflowName: string) => {
     deleteWorkflow(workflowName);
     const updatedWorkflows = getSavedWorkflows();
-    setSavedWorkflows(updatedWorkflows);
+    setSavedWorkflows(updatedWorkflows); // Update dropdown list after deleting
   };
 
   return (
@@ -39,6 +40,7 @@ const SavedWorkflowsDropdown: React.FC = () => {
         Load Workflow
       </label>
       <select
+        disabled={savedWorkflows.length == 0}
         onChange={handleLoadWorkflow}
         className="block w-full p-2 border border-gray-300 rounded-md"
       >
