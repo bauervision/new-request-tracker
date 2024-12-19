@@ -11,6 +11,7 @@ import {
 
 import { useWorkflow } from "@/app/context/WorkflowContext";
 import workflow from "@/app/workflow-engine/workflow";
+import { useUser } from "@/app/context/UserContext";
 
 const WorkflowComponent: React.FC = memo(() => {
   const {
@@ -19,6 +20,7 @@ const WorkflowComponent: React.FC = memo(() => {
     addItem,
     saveWorkflow,
     deleteWorkflow,
+    unloadWorkflow,
     setLoading,
     loading,
     currentWorkflowName,
@@ -26,12 +28,20 @@ const WorkflowComponent: React.FC = memo(() => {
     getSavedWorkflows,
   } = useWorkflow();
 
+  const { user } = useUser();
   const [newItemName, setNewItemName] = useState<string>("");
   const [newWorkflowName, setNewWorkflowName] = useState<string>("");
+  const [workflowKey, setWorkflowKey] = useState<string>("");
+  const [workflowDescription, setWorkflowDescription] = useState<string>("");
 
   const [itemRefs, setItemRefs] = useState<
     Record<string, React.RefObject<HTMLInputElement>>
   >({});
+
+  // Track the editing item and dialog state
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editData, setEditData] = useState<Record<string, any>>({});
 
   // Track items that were newly inserted and need a name save
   const [unsavedItems, setUnsavedItems] = useState<Set<string>>(new Set());
@@ -143,11 +153,22 @@ const WorkflowComponent: React.FC = memo(() => {
     if (newWorkflowName.trim()) {
       setCurrentWorkflowName(newWorkflowName);
       setNeedsSave(true);
+
+      // Save the key and description as part of the workflow state
+      saveWorkflow(newWorkflowName); // Save the initial state of the workflow
+      setWorkflowKey("");
+      setWorkflowDescription("");
       setNewWorkflowName("");
-      console.log("New workflow created:", newWorkflowName);
     } else {
       alert("Workflow requires a name!");
     }
+  };
+
+  const handleUnloadWorkflow = () => {
+    unloadWorkflow();
+    setWorkflowKey("");
+    setWorkflowDescription("");
+    setNewWorkflowName("");
   };
 
   useEffect(() => {
@@ -232,11 +253,6 @@ const WorkflowComponent: React.FC = memo(() => {
     }
   }, [state, currentWorkflowName, needsSave, saveWorkflow, originalItemNames]);
 
-  // Track the editing item and dialog state
-  const [editingItem, setEditingItem] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editData, setEditData] = useState<Record<string, any>>({});
-
   const handleEditClick = (itemId: string) => {
     const item = state.items[itemId];
     if (item) {
@@ -270,15 +286,33 @@ const WorkflowComponent: React.FC = memo(() => {
     setIsDialogOpen(false);
   };
 
+  const handleWorkflowKeyChange = (key: string) => {
+    setWorkflowKey(key);
+    dispatch({ type: "updateWorkflowMetadata", key });
+  };
+
+  const handleWorkflowDescriptionChange = (description: string) => {
+    setWorkflowDescription(description);
+    dispatch({ type: "updateWorkflowMetadata", description });
+  };
+
   const renderItem = (itemId: string): JSX.Element => {
     if (!state.items || !state.items[itemId]) return <></>;
     const item = state.items[itemId];
     const isCollapsed = collapsedItems.has(item.id);
-    const isUnsaved = unsavedItems.has(item.id);
-    const isChanged = changedItems.has(item.id);
-    const trimmedName = item.name.trim();
 
-    const showSaveName = (isUnsaved || isChanged) && trimmedName.length > 0;
+    // Get the available actions based on the current state
+    const workflowActions = Object.keys(
+      workflow.states[item.currentState]?.on || {}
+    );
+
+    // Filter actions based on role and state
+    const availableActions =
+      user.role === "admin"
+        ? workflowActions // Admins see all actions
+        : workflowActions.filter((action) =>
+            ["submit", "approve", "reject", "archive"].includes(action)
+          ); // Users see specific actions
 
     return (
       <li key={item.id} className="mb-4 p-4 border border-gray-300 rounded-md">
@@ -290,62 +324,29 @@ const WorkflowComponent: React.FC = memo(() => {
           >
             {isCollapsed ? "▶" : "▼"}
           </button>
-          <input
-            ref={itemRefs[item.id]}
-            type="text"
-            value={item.name}
-            onChange={(e) => handleUpdateName(item.id, e.target.value)}
-            placeholder="Enter item name"
-            className="p-2 border border-gray-300 rounded-md"
-          />
-          <p className="text-lg">
-            Current State:{" "}
-            <span className="font-semibold">{item.currentState}</span>
-          </p>
-
-          {showSaveName && (
-            <button
-              onClick={() => handleSaveItemName(item.id)}
-              className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition whitespace-nowrap"
-            >
-              Save Name
-            </button>
-          )}
+          <p className="text-lg font-semibold">{item.name}</p>
         </div>
         <div className="flex flex-wrap space-x-2 mt-2">
-          {Object.keys(workflow.states[item.currentState].on).map((action) => (
+          {/* Render buttons dynamically based on available actions */}
+          {availableActions.map((action) => (
             <button
               key={action}
               onClick={() => handleTransition(item.id, action)}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition whitespace-nowrap"
+              className={`px-4 py-2 ${
+                action === "submit"
+                  ? "bg-blue-500 hover:bg-blue-600"
+                  : action === "approve"
+                  ? "bg-green-500 hover:bg-green-600"
+                  : action === "reject"
+                  ? "bg-red-500 hover:bg-red-600"
+                  : action === "archive"
+                  ? "bg-gray-700 hover:bg-gray-800"
+                  : "bg-gray-500 hover:bg-gray-600"
+              } text-white rounded-lg transition whitespace-nowrap`}
             >
-              {action}
+              {action.charAt(0).toUpperCase() + action.slice(1)}
             </button>
           ))}
-          <button
-            onClick={() => handleEditClick(item.id)}
-            className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => handleInsertAfter(item.id)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition whitespace-nowrap"
-          >
-            Insert After
-          </button>
-          <button
-            onClick={() => handleDeleteStep(item.id)}
-            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition whitespace-nowrap"
-          >
-            Delete Step
-          </button>
-          <button
-            onClick={() => handleRemoveAllBelow(item.id)}
-            className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition whitespace-nowrap"
-          >
-            Remove All Below
-          </button>
         </div>
         {!isCollapsed && item.children.length > 0 && (
           <ul className="pl-5 list-disc">
@@ -355,6 +356,15 @@ const WorkflowComponent: React.FC = memo(() => {
       </li>
     );
   };
+
+  useEffect(() => {
+    if (state.workflowKey) {
+      setWorkflowKey(state.workflowKey);
+    }
+    if (state.workflowDescription) {
+      setWorkflowDescription(state.workflowDescription);
+    }
+  }, [state.workflowKey, state.workflowDescription]);
 
   return (
     <div className="p-6 mx-4 bg-slate-200 rounded-xl shadow-md space-y-4 ">
@@ -409,47 +419,130 @@ const WorkflowComponent: React.FC = memo(() => {
         </DialogContent>
       </Dialog>
 
-      {/* No Workflow Loaded */}
-      {!currentWorkflowName && (
+      {/* Restrict "Create New Workflow" based on user role */}
+      {user.role === "admin" && !currentWorkflowName && (
         <div>
           <h3 className="block text-lg font-medium text-gray-700 text-center pb-4">
             Create a New Workflow
           </h3>
-          <div className="mb-4 flex space-x-2 items-center">
-            <input
-              type="text"
-              value={newWorkflowName}
-              onChange={(e) => setNewWorkflowName(e.target.value)}
-              className="border border-gray-300 rounded-lg p-2 w-1/2"
-              placeholder="Enter name for new workflow"
-            />
-            <button
-              onClick={handleCreateNewWorkflow}
-              className="w-1/2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition "
-            >
-              Create New Workflow
-            </button>
+          <div className="flex items-center space-x-4">
+            {/* Workflow Key */}
+            <div className="flex-1">
+              <label
+                htmlFor="workflow-key"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Workflow Key
+              </label>
+              <input
+                id="workflow-key"
+                type="text"
+                value={workflowKey}
+                onChange={(e) => setWorkflowKey(e.target.value)}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+                placeholder="Enter workflow key"
+              />
+            </div>
+
+            {/* Workflow Name */}
+            <div className="flex-1">
+              <label
+                htmlFor="workflow-name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Workflow Name
+              </label>
+              <input
+                id="workflow-name"
+                type="text"
+                value={newWorkflowName}
+                onChange={(e) => setNewWorkflowName(e.target.value)}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+                placeholder="Enter name for new workflow"
+              />
+            </div>
+
+            {/* Workflow Description */}
+            <div className="flex-1">
+              <label
+                htmlFor="workflow-description"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Workflow Description
+              </label>
+              <textarea
+                id="workflow-description"
+                value={workflowDescription}
+                onChange={(e) => setWorkflowDescription(e.target.value)}
+                className="border border-gray-300 rounded-lg p-2 w-full"
+                placeholder="Enter workflow description"
+              />
+            </div>
+
+            {/* Create New Workflow */}
+            <div className="flex-shrink-0">
+              <button
+                onClick={handleCreateNewWorkflow}
+                className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition whitespace-nowrap"
+              >
+                Create New Workflow
+              </button>
+            </div>
           </div>
         </div>
       )}
-
       {/* Viewing a Workflow */}
       {currentWorkflowName && (
         <>
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">{currentWorkflowName}</h1>
+            <div className="flex space-y-4 border space-x-4">
+              <div className="flex items-center space-x-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Workflow Key:
+                </label>
+                <input
+                  type="text"
+                  value={workflowKey}
+                  onChange={(e) => setWorkflowKey(e.target.value)}
+                  className="border border-gray-300 rounded-lg p-2"
+                  placeholder="Enter workflow key"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Description:
+                </label>
+                <textarea
+                  value={workflowDescription}
+                  onChange={(e) => setWorkflowDescription(e.target.value)}
+                  className="border border-gray-300 rounded-lg p-2"
+                  placeholder="Enter description"
+                />
+              </div>
+            </div>
             <div className="flex space-x-2">
+              {user.role === "admin" && (
+                <>
+                  <button
+                    onClick={() => saveWorkflow(currentWorkflowName)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => deleteWorkflow(currentWorkflowName)}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
               <button
-                onClick={handleSaveWorkflow}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                onClick={handleUnloadWorkflow}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
               >
-                Save
-              </button>
-              <button
-                onClick={handleDeleteWorkflow}
-                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-              >
-                Delete
+                Unload
               </button>
             </div>
           </div>
@@ -483,6 +576,14 @@ const WorkflowComponent: React.FC = memo(() => {
 
           <ul>{state.rootItem && renderItem(state.rootItem)}</ul>
         </>
+      )}
+
+      {/* Restrict "Create New Workflow" button */}
+      {user.role !== "admin" && !currentWorkflowName && (
+        <p className="text-center text-gray-500">
+          You do not have permission to create new workflows. Please select an
+          existing workflow to view.
+        </p>
       )}
     </div>
   );

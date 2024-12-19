@@ -21,6 +21,8 @@ export interface WorkflowItemState {
 interface WorkflowState {
   rootItem?: string; // Root item ID
   items: Record<string, WorkflowItemState>; // Map of item IDs to their states
+  workflowKey?: string; // Workflow key
+  workflowDescription?: string; // Workflow description
 }
 
 interface InitializeAction {
@@ -69,6 +71,12 @@ interface UpdateItemAction {
   data: Partial<WorkflowItemState>;
 }
 
+interface UpdateWorkflowMetadataAction {
+  type: "updateWorkflowMetadata";
+  key?: string;
+  description?: string;
+}
+
 type WorkflowAction =
   | InitializeAction
   | TransitionAction
@@ -77,7 +85,8 @@ type WorkflowAction =
   | RemoveAllBelowAction
   | UpdateName
   | LoadWorkflowAction
-  | UpdateItemAction;
+  | UpdateItemAction
+  | UpdateWorkflowMetadataAction;
 
 interface WorkflowContextType {
   state: WorkflowState;
@@ -86,6 +95,7 @@ interface WorkflowContextType {
   saveWorkflow: (name: string) => void;
   loadWorkflow: (workflowName: string) => void;
   deleteWorkflow: (workflowName: string) => void;
+  unloadWorkflow: () => void;
   getSavedWorkflows: () => string[];
   setLoading: (isLoading: boolean) => void;
   loading: boolean;
@@ -265,6 +275,14 @@ const workflowReducer = (
       };
     }
 
+    case "updateWorkflowMetadata": {
+      return {
+        ...state,
+        workflowKey: action.key ?? state.workflowKey,
+        workflowDescription: action.description ?? state.workflowDescription,
+      };
+    }
+
     default:
       return state;
   }
@@ -282,17 +300,36 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const saveWorkflow = (name: string) => {
-    localStorage.setItem(`workflow_${name}`, JSON.stringify(state));
+    console.log("Saving workflow:", name, state); // Debugging
+    const workflowToSave = {
+      ...state,
+      workflowKey: state.workflowKey,
+      workflowDescription: state.workflowDescription,
+    };
+    localStorage.setItem(`workflow_${name}`, JSON.stringify(workflowToSave));
     setSavedWorkflows(getSavedWorkflows());
+  };
+
+  const unloadWorkflow = () => {
+    dispatch({ type: "loadWorkflow", workflowState: initialState }); // Reset the workflow state
+    setCurrentWorkflowName(""); // Clear the workflow name
   };
 
   const loadWorkflow = (workflowName: string) => {
     const savedWorkflow = localStorage.getItem(`workflow_${workflowName}`);
     if (savedWorkflow) {
+      const workflowState = JSON.parse(savedWorkflow);
+
       dispatch({
         type: "loadWorkflow",
-        workflowState: JSON.parse(savedWorkflow),
+        workflowState: {
+          rootItem: workflowState.rootItem,
+          items: workflowState.items,
+          workflowKey: workflowState.workflowKey || "", // Load key or default to empty
+          workflowDescription: workflowState.workflowDescription || "", // Load description or default to empty
+        },
       });
+      setLoading(false);
     }
   };
 
@@ -321,6 +358,7 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
         saveWorkflow,
         loadWorkflow,
         deleteWorkflow,
+        unloadWorkflow,
         getSavedWorkflows,
         setLoading,
         loading,
