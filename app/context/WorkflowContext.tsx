@@ -63,6 +63,12 @@ interface LoadWorkflowAction {
   workflowState: WorkflowState;
 }
 
+interface UpdateItemAction {
+  type: "updateItem";
+  itemId: string;
+  data: Partial<WorkflowItemState>;
+}
+
 type WorkflowAction =
   | InitializeAction
   | TransitionAction
@@ -70,7 +76,8 @@ type WorkflowAction =
   | DeleteStepAction
   | RemoveAllBelowAction
   | UpdateName
-  | LoadWorkflowAction;
+  | LoadWorkflowAction
+  | UpdateItemAction;
 
 interface WorkflowContextType {
   state: WorkflowState;
@@ -97,11 +104,9 @@ const initialState: WorkflowState = {
 };
 
 const workflowReducer = (
-  state: WorkflowState = { rootItem: undefined, items: {} }, // Ensure items is initialized
+  state: WorkflowState = { rootItem: undefined, items: {} },
   action: WorkflowAction
 ): WorkflowState => {
-  console.log("Reducer received action:", action);
-
   switch (action.type) {
     case "initialize": {
       const newItem: WorkflowItemState = {
@@ -112,8 +117,6 @@ const workflowReducer = (
       };
 
       if (!state.rootItem) {
-        // No root, newItem becomes the root
-        console.log("Initializing root item:", newItem.id, newItem.name);
         return {
           rootItem: newItem.id,
           items: {
@@ -121,30 +124,9 @@ const workflowReducer = (
           },
         };
       } else {
-        // Root item exists, find the last item (a leaf) and append newItem
-        console.log("Appending new item:", newItem.id, newItem.name);
-
-        const findLastItem = (
-          items: Record<string, WorkflowItemState>,
-          currentId: string
-        ): string => {
-          const current = items[currentId];
-          if (current.children.length === 0) {
-            // This item has no children, it's a leaf
-            return currentId;
-          } else {
-            // Move deeper into the last child
-            return findLastItem(
-              items,
-              current.children[current.children.length - 1]
-            );
-          }
-        };
-
-        const lastItemId = findLastItem(state.items, state.rootItem!);
+        const lastItemId = state.rootItem;
         const lastItem = state.items[lastItemId];
 
-        // Append the new item as a child of the last item
         return {
           ...state,
           items: {
@@ -195,9 +177,9 @@ const workflowReducer = (
           ...state.items,
           [parentItem.id]: {
             ...parentItem,
-            children: [...parentItem.children, newItem.id], // Add new item's ID
+            children: [...parentItem.children, newItem.id],
           },
-          [newItem.id]: newItem, // Add the new item itself
+          [newItem.id]: newItem,
         },
       };
     }
@@ -266,60 +248,51 @@ const workflowReducer = (
       };
     }
 
+    case "updateItem": {
+      console.log("updateItem called...");
+      const currentItem = state.items[action.itemId];
+      if (!currentItem) return state;
+
+      return {
+        ...state,
+        items: {
+          ...state.items,
+          [action.itemId]: {
+            ...currentItem,
+            ...action.data,
+          },
+        },
+      };
+    }
+
     default:
       return state;
   }
 };
 
 export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(workflowReducer, {
-    rootItem: undefined,
-    items: {}, // Initialize items as an empty object
-  });
+  const [state, dispatch] = useReducer(workflowReducer, initialState);
   const [loading, setLoading] = useState(true);
   const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
   const [currentWorkflowName, setCurrentWorkflowName] = useState<string>("");
 
   const addItem = (name: string) => {
-    console.log("addItem called with name:", name); // Debug
     const newId = `item-${Date.now()}`;
     dispatch({ type: "initialize", itemId: newId, name });
   };
 
   const saveWorkflow = (name: string) => {
-    console.log("Saving workflow:", name, state); // Debugging
     localStorage.setItem(`workflow_${name}`, JSON.stringify(state));
-    const updatedSavedWorkflows = getSavedWorkflows(); // Fetch updated workflows after save
-    setSavedWorkflows(updatedSavedWorkflows); // Update state
+    setSavedWorkflows(getSavedWorkflows());
   };
 
   const loadWorkflow = (workflowName: string) => {
     const savedWorkflow = localStorage.getItem(`workflow_${workflowName}`);
     if (savedWorkflow) {
-      const workflowState = JSON.parse(savedWorkflow);
-
-      // Ensure all items are added to state.items
-      const updatedItems = { ...workflowState.items };
-      if (workflowState.rootItem) {
-        const addItemRecursively = (itemId: string) => {
-          const item = updatedItems[itemId];
-          if (item) {
-            item.children.forEach((childId: string) =>
-              addItemRecursively(childId)
-            );
-          }
-        };
-        addItemRecursively(workflowState.rootItem);
-      }
-
       dispatch({
         type: "loadWorkflow",
-        workflowState: {
-          rootItem: workflowState.rootItem,
-          items: updatedItems,
-        },
+        workflowState: JSON.parse(savedWorkflow),
       });
-      setLoading(false);
     }
   };
 
@@ -336,13 +309,8 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const workflows = getSavedWorkflows();
-    setSavedWorkflows(workflows);
-  }, []); // Load workflows on initial render
-
-  useEffect(() => {
-    console.log("State after load:", state);
-  }, [state]);
+    setSavedWorkflows(getSavedWorkflows());
+  }, []);
 
   return (
     <WorkflowContext.Provider

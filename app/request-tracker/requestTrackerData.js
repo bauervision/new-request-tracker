@@ -7,6 +7,7 @@ export const adminData = [
 
 export const programManagementData = [
   { title: "Request Tracker", url: "/request-tracker" },
+  { title: "Workflows", url: "/request-tracker/workflow" },
   {
     title: "Deliverable Tracker",
     url: "/request-tracker/management/deliverables",

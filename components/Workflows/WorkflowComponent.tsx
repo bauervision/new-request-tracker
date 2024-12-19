@@ -1,4 +1,14 @@
 import React, { useState, useEffect, useRef, memo } from "react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
 import { useWorkflow } from "@/app/context/WorkflowContext";
 import workflow from "@/app/workflow-engine/workflow";
 
@@ -38,6 +48,22 @@ const WorkflowComponent: React.FC = memo(() => {
 
   // Track if we need to save after performing certain actions
   const [needsSave, setNeedsSave] = useState(false);
+
+  // Track collapsed items
+  const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
+
+  // Toggle collapse state for an item
+  const toggleCollapse = (itemId: string) => {
+    setCollapsedItems((prev) => {
+      const updated = new Set(prev);
+      if (updated.has(itemId)) {
+        updated.delete(itemId); // Expand if collapsed
+      } else {
+        updated.add(itemId); // Collapse if expanded
+      }
+      return updated;
+    });
+  };
 
   const handleSaveWorkflow = () => {
     if (currentWorkflowName) {
@@ -206,21 +232,64 @@ const WorkflowComponent: React.FC = memo(() => {
     }
   }, [state, currentWorkflowName, needsSave, saveWorkflow, originalItemNames]);
 
+  // Track the editing item and dialog state
+  const [editingItem, setEditingItem] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editData, setEditData] = useState<Record<string, any>>({});
+
+  const handleEditClick = (itemId: string) => {
+    const item = state.items[itemId];
+    if (item) {
+      setEditingItem(itemId);
+      setEditData({ ...item });
+      setIsDialogOpen(true);
+    }
+  };
+
+  const handleEditChange = (key: string, value: any) => {
+    setEditData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleSaveEdit = () => {
+    if (editingItem) {
+      dispatch({ type: "updateItem", itemId: editingItem, data: editData }); // Dispatch update action
+      saveWorkflow(currentWorkflowName); // Save the entire workflow
+      setEditingItem(null);
+      setEditData({});
+      setIsDialogOpen(false);
+      setNeedsSave(true);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItem(null);
+    setEditData({});
+    setIsDialogOpen(false);
+  };
+
   const renderItem = (itemId: string): JSX.Element => {
     if (!state.items || !state.items[itemId]) return <></>;
     const item = state.items[itemId];
+    const isCollapsed = collapsedItems.has(item.id);
     const isUnsaved = unsavedItems.has(item.id);
     const isChanged = changedItems.has(item.id);
     const trimmedName = item.name.trim();
 
-    // Show Save Name button if:
-    // 1. Item is unsaved and has a non-empty name OR
-    // 2. Item is changed (existing item modified) and has a non-empty name
     const showSaveName = (isUnsaved || isChanged) && trimmedName.length > 0;
 
     return (
       <li key={item.id} className="mb-4 p-4 border border-gray-300 rounded-md">
         <div className="flex space-x-4 items-center">
+          <button
+            onClick={() => toggleCollapse(item.id)}
+            className="p-2 rounded bg-gray-200 hover:bg-gray-300 transition"
+            title={isCollapsed ? "Expand" : "Collapse"}
+          >
+            {isCollapsed ? "▶" : "▼"}
+          </button>
           <input
             ref={itemRefs[item.id]}
             type="text"
@@ -233,6 +302,7 @@ const WorkflowComponent: React.FC = memo(() => {
             Current State:{" "}
             <span className="font-semibold">{item.currentState}</span>
           </p>
+
           {showSaveName && (
             <button
               onClick={() => handleSaveItemName(item.id)}
@@ -253,6 +323,12 @@ const WorkflowComponent: React.FC = memo(() => {
             </button>
           ))}
           <button
+            onClick={() => handleEditClick(item.id)}
+            className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+          >
+            Edit
+          </button>
+          <button
             onClick={() => handleInsertAfter(item.id)}
             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition whitespace-nowrap"
           >
@@ -271,7 +347,7 @@ const WorkflowComponent: React.FC = memo(() => {
             Remove All Below
           </button>
         </div>
-        {item.children.length > 0 && (
+        {!isCollapsed && item.children.length > 0 && (
           <ul className="pl-5 list-disc">
             {item.children.map((childId) => renderItem(childId))}
           </ul>
@@ -281,27 +357,83 @@ const WorkflowComponent: React.FC = memo(() => {
   };
 
   return (
-    <div className="p-6 mx-auto bg-white rounded-xl shadow-md space-y-4">
+    <div className="p-6 mx-4 bg-slate-200 rounded-xl shadow-md space-y-4 ">
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Item</DialogTitle>
+            <DialogDescription>
+              Modify the details for this workflow item.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Name
+              </label>
+              <input
+                type="text"
+                value={editData.name || ""}
+                onChange={(e) => handleEditChange("name", e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Current State
+              </label>
+              <input
+                type="text"
+                value={editData.currentState || ""}
+                onChange={(e) =>
+                  handleEditChange("currentState", e.target.value)
+                }
+                className="w-full border border-gray-300 rounded-lg p-2"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <button
+              onClick={handleSaveEdit}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+            >
+              Save
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+            >
+              Cancel
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* No Workflow Loaded */}
       {!currentWorkflowName && (
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Workflow Name
-          </label>
-          <input
-            type="text"
-            value={newWorkflowName}
-            onChange={(e) => setNewWorkflowName(e.target.value)}
-            className="border border-gray-300 rounded-lg p-2 w-full"
-            placeholder="Enter name for new workflow"
-          />
-          <button
-            onClick={handleCreateNewWorkflow}
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mt-2"
-          >
-            Create New Workflow
-          </button>
+        <div>
+          <h3 className="block text-lg font-medium text-gray-700 text-center pb-4">
+            Create a New Workflow
+          </h3>
+          <div className="mb-4 flex space-x-2 items-center">
+            <input
+              type="text"
+              value={newWorkflowName}
+              onChange={(e) => setNewWorkflowName(e.target.value)}
+              className="border border-gray-300 rounded-lg p-2 w-1/2"
+              placeholder="Enter name for new workflow"
+            />
+            <button
+              onClick={handleCreateNewWorkflow}
+              className="w-1/2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition "
+            >
+              Create New Workflow
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Viewing a Workflow */}
       {currentWorkflowName && (
         <>
           <div className="flex items-center justify-between mb-4">
