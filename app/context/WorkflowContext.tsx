@@ -127,6 +127,7 @@ const workflowReducer = (
       };
 
       if (!state.rootItem) {
+        // No root exists, the new item becomes the root
         return {
           rootItem: newItem.id,
           items: {
@@ -134,17 +135,27 @@ const workflowReducer = (
           },
         };
       } else {
-        const lastItemId = state.rootItem;
-        const lastItem = state.items[lastItemId];
+        // Find the last item in the hierarchy
+        const findLastItem = (itemId: string): string => {
+          const item = state.items[itemId];
+          if (item.children.length === 0) {
+            // No children, this is the last item
+            return itemId;
+          }
+          // Recursively go deeper into the last child
+          return findLastItem(item.children[item.children.length - 1]);
+        };
+
+        const lastItemId = findLastItem(state.rootItem);
 
         return {
           ...state,
           items: {
             ...state.items,
-            [newItem.id]: newItem,
+            [action.itemId]: newItem, // Add the new item
             [lastItemId]: {
-              ...lastItem,
-              children: [...lastItem.children, newItem.id],
+              ...state.items[lastItemId],
+              children: [...state.items[lastItemId].children, action.itemId], // Append to last item
             },
           },
         };

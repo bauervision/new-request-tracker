@@ -300,19 +300,11 @@ const WorkflowComponent: React.FC = memo(() => {
     if (!state.items || !state.items[itemId]) return <></>;
     const item = state.items[itemId];
     const isCollapsed = collapsedItems.has(item.id);
+    const isUnsaved = unsavedItems.has(item.id);
+    const isChanged = changedItems.has(item.id);
+    const trimmedName = item.name.trim();
 
-    // Get the available actions based on the current state
-    const workflowActions = Object.keys(
-      workflow.states[item.currentState]?.on || {}
-    );
-
-    // Filter actions based on role and state
-    const availableActions =
-      user.role === "admin"
-        ? workflowActions // Admins see all actions
-        : workflowActions.filter((action) =>
-            ["submit", "approve", "reject", "archive"].includes(action)
-          ); // Users see specific actions
+    const showSaveName = (isUnsaved || isChanged) && trimmedName.length > 0;
 
     return (
       <li key={item.id} className="mb-4 p-4 border border-gray-300 rounded-md">
@@ -324,29 +316,67 @@ const WorkflowComponent: React.FC = memo(() => {
           >
             {isCollapsed ? "▶" : "▼"}
           </button>
-          <p className="text-lg font-semibold">{item.name}</p>
+          <input
+            ref={itemRefs[item.id]}
+            type="text"
+            value={item.name}
+            onChange={(e) => handleUpdateName(item.id, e.target.value)}
+            placeholder="Enter item name"
+            className="p-2 border border-gray-300 rounded-md"
+          />
+          <p className="text-lg">
+            Current State:{" "}
+            <span className="font-semibold">{item.currentState}</span>
+          </p>
+
+          {showSaveName && (
+            <button
+              onClick={() => handleSaveItemName(item.id)}
+              className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition whitespace-nowrap"
+            >
+              Save Name
+            </button>
+          )}
         </div>
         <div className="flex flex-wrap space-x-2 mt-2">
-          {/* Render buttons dynamically based on available actions */}
-          {availableActions.map((action) => (
+          {Object.keys(workflow.states[item.currentState].on).map((action) => (
             <button
               key={action}
               onClick={() => handleTransition(item.id, action)}
-              className={`px-4 py-2 ${
-                action === "submit"
-                  ? "bg-blue-500 hover:bg-blue-600"
-                  : action === "approve"
-                  ? "bg-green-500 hover:bg-green-600"
-                  : action === "reject"
-                  ? "bg-red-500 hover:bg-red-600"
-                  : action === "archive"
-                  ? "bg-gray-700 hover:bg-gray-800"
-                  : "bg-gray-500 hover:bg-gray-600"
-              } text-white rounded-lg transition whitespace-nowrap`}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition whitespace-nowrap"
             >
-              {action.charAt(0).toUpperCase() + action.slice(1)}
+              {action}
             </button>
           ))}
+
+          {user.role == "admin" && (
+            <>
+              <button
+                onClick={() => handleEditClick(item.id)}
+                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleInsertAfter(item.id)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition whitespace-nowrap"
+              >
+                Insert After
+              </button>
+              <button
+                onClick={() => handleDeleteStep(item.id)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition whitespace-nowrap"
+              >
+                Delete Step
+              </button>
+              <button
+                onClick={() => handleRemoveAllBelow(item.id)}
+                className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition whitespace-nowrap"
+              >
+                Remove All Below
+              </button>
+            </>
+          )}
         </div>
         {!isCollapsed && item.children.length > 0 && (
           <ul className="pl-5 list-disc">
@@ -531,7 +561,7 @@ const WorkflowComponent: React.FC = memo(() => {
                     Save
                   </button>
                   <button
-                    onClick={() => deleteWorkflow(currentWorkflowName)}
+                    onClick={handleDeleteWorkflow}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                   >
                     Delete
