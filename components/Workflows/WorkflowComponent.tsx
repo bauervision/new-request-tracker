@@ -151,11 +151,17 @@ const WorkflowComponent: React.FC = memo(() => {
 
   const handleCreateNewWorkflow = () => {
     if (newWorkflowName.trim()) {
-      setCurrentWorkflowName(newWorkflowName);
-      setNeedsSave(true);
+      // Dispatch action to set metadata without initializing a root item
+      dispatch({
+        type: "updateWorkflowMetadata",
+        key: workflowKey,
+        description: workflowDescription,
+      });
 
-      // Save the key and description as part of the workflow state
-      saveWorkflow(newWorkflowName); // Save the initial state of the workflow
+      setCurrentWorkflowName(newWorkflowName); // Set the current workflow name
+      setNeedsSave(true); // Mark as needing save
+
+      // Clear the input fields
       setWorkflowKey("");
       setWorkflowDescription("");
       setNewWorkflowName("");
@@ -296,6 +302,22 @@ const WorkflowComponent: React.FC = memo(() => {
     dispatch({ type: "updateWorkflowMetadata", description });
   };
 
+  const handleAddFirstItem = () => {
+    const rootItemId = `root-${Date.now()}`;
+
+    // Dispatch action to create the root item
+    dispatch({
+      type: "initialize",
+      itemId: rootItemId,
+      name: newItemName.trim(), // Use the entered name
+    });
+
+    // Clear the input field
+    setNewItemName("");
+
+    setNeedsSave(true); // Mark the workflow as needing save
+  };
+
   const renderItem = (itemId: string): JSX.Element => {
     if (!state.items || !state.items[itemId]) return <></>;
     const item = state.items[itemId];
@@ -378,6 +400,7 @@ const WorkflowComponent: React.FC = memo(() => {
             </>
           )}
         </div>
+
         {!isCollapsed && item.children.length > 0 && (
           <ul className="pl-5 list-disc">
             {item.children.map((childId) => renderItem(childId))}
@@ -455,6 +478,8 @@ const WorkflowComponent: React.FC = memo(() => {
           <h3 className="block text-lg font-medium text-gray-700 text-center pb-4">
             Create a New Workflow
           </h3>
+
+          {/* Display the Key, Name and Description */}
           <div className="flex items-center space-x-4">
             {/* Workflow Key */}
             <div className="flex-1">
@@ -577,34 +602,47 @@ const WorkflowComponent: React.FC = memo(() => {
             </div>
           </div>
 
-          {!loading && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                New Item Name
-              </label>
-              <input
-                ref={inputRef}
-                type="text"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                className="border border-gray-300 rounded-lg p-2 w-full"
-                placeholder="Enter name for new item"
-              />
-              <button
-                onClick={handleAddItem}
-                disabled={!newItemName.trim()}
-                className={`p-2 rounded-md ${
-                  newItemName.trim()
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                Add Item
-              </button>
-            </div>
-          )}
+          {/* Workflow Body */}
+          <div className="mb-4">
+            <div>
+              {/* Prompt to Add First Item */}
+              {state.rootItem?.length == 0 && (
+                <div className="text-center">
+                  <p className="text-gray-500 mb-2">
+                    No items in this workflow yet. Start by adding one!
+                  </p>
+                </div>
+              )}
 
-          <ul>{state.rootItem && renderItem(state.rootItem)}</ul>
+              {/* Show Add Item Form */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  New Item Name
+                </label>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  className="border border-gray-300 rounded-lg p-2 w-full"
+                  placeholder="Enter name for new item"
+                />
+                <button
+                  onClick={handleAddFirstItem}
+                  disabled={!newItemName.trim()}
+                  className={`p-2 mt-2 rounded-md ${
+                    newItemName.trim()
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  Add Item
+                </button>
+              </div>
+            </div>
+
+            {state.rootItem && <ul>{renderItem(state.rootItem)}</ul>}
+          </div>
         </>
       )}
 
