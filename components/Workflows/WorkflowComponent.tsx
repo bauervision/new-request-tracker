@@ -91,6 +91,9 @@ const WorkflowComponent: React.FC = memo(() => {
     if (currentWorkflowName) {
       deleteWorkflow(currentWorkflowName);
       setCurrentWorkflowName("");
+      setWorkflowKey("");
+      setWorkflowDescription("");
+      setNewWorkflowName("");
       alert("Workflow deleted successfully!");
       setIsDeleteDialogOpen(false); // Close the dialog
     }

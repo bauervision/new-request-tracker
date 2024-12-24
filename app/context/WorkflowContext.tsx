@@ -129,10 +129,13 @@ const workflowReducer = (
       if (!state.rootItem) {
         // No root exists, the new item becomes the root
         return {
+          ...state,
           rootItem: newItem.id,
           items: {
             [newItem.id]: newItem,
           },
+          workflowKey: state.workflowKey, // Preserve existing key
+          workflowDescription: state.workflowDescription, // Preserve existing description
         };
       } else {
         // Find the last item in the hierarchy
@@ -158,6 +161,8 @@ const workflowReducer = (
               children: [...state.items[lastItemId].children, action.itemId], // Append to last item
             },
           },
+          workflowKey: state.workflowKey, // Preserve existing key
+          workflowDescription: state.workflowDescription, // Preserve existing description
         };
       }
     }

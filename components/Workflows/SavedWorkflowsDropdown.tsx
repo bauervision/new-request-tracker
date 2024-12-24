@@ -24,23 +24,29 @@ const SavedWorkflowsDropdown: React.FC = () => {
   }, [savedWorkflows, selectedWorkflow]);
 
   return (
-    <div className="mb-4">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        Load Workflow
-      </label>
-      <select
-        value={selectedWorkflow}
-        disabled={savedWorkflows.length === 0}
-        onChange={handleLoadWorkflow}
-        className="block w-full p-2 border border-gray-300 rounded-md"
-      >
-        <option value="">Select a workflow</option>
-        {savedWorkflows.map((name) => (
-          <option key={name} value={name}>
-            {name}
-          </option>
-        ))}
-      </select>
+    <div className=" ">
+      {savedWorkflows.length > 0 ? (
+        <>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Load Workflow
+          </label>
+          <select
+            value={selectedWorkflow}
+            disabled={savedWorkflows.length === 0}
+            onChange={handleLoadWorkflow}
+            className="block w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="">Select a workflow</option>
+            {savedWorkflows.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </>
+      ) : (
+        <div className="">No Workflows Found, please create one first</div>
+      )}
     </div>
   );
 };
