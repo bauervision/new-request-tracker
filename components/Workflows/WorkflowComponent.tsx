@@ -62,6 +62,8 @@ const WorkflowComponent: React.FC = memo(() => {
   // Track collapsed items
   const [collapsedItems, setCollapsedItems] = useState<Set<string>>(new Set());
 
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   // Toggle collapse state for an item
   const toggleCollapse = (itemId: string) => {
     setCollapsedItems((prev) => {
@@ -90,7 +92,18 @@ const WorkflowComponent: React.FC = memo(() => {
       deleteWorkflow(currentWorkflowName);
       setCurrentWorkflowName("");
       alert("Workflow deleted successfully!");
+      setIsDeleteDialogOpen(false); // Close the dialog
     }
+  };
+
+  const handleOpenDeleteDialog = () => {
+    if (currentWorkflowName) {
+      setIsDeleteDialogOpen(true); // Open the dialog
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteDialogOpen(false); // Close the dialog without deleting
   };
 
   const handleAddItem = () => {
@@ -153,12 +166,20 @@ const WorkflowComponent: React.FC = memo(() => {
     if (newWorkflowName.trim()) {
       // Dispatch action to set metadata without initializing a root item
       dispatch({
-        type: "updateWorkflowMetadata",
-        key: workflowKey,
-        description: workflowDescription,
+        type: "loadWorkflow",
+        workflowState: {
+          rootItem: undefined, // No root item initially
+          items: {}, // Empty items list
+          workflowKey: workflowKey.trim(),
+          workflowDescription: workflowDescription.trim(),
+        },
       });
 
       setCurrentWorkflowName(newWorkflowName); // Set the current workflow name
+
+      // Save the workflow immediately
+      saveWorkflow(newWorkflowName);
+
       setNeedsSave(true); // Mark as needing save
 
       // Clear the input fields
@@ -421,6 +442,34 @@ const WorkflowComponent: React.FC = memo(() => {
 
   return (
     <div className="p-6 mx-4 bg-slate-200 rounded-xl shadow-md space-y-4 ">
+      {/* Delete Workflow Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this workflow? This action cannot
+              be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              onClick={handleDeleteWorkflow}
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+            >
+              Delete
+            </button>
+            <button
+              onClick={handleCancelDelete}
+              className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
+            >
+              Cancel
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -493,7 +542,7 @@ const WorkflowComponent: React.FC = memo(() => {
                 id="workflow-key"
                 type="text"
                 value={workflowKey}
-                onChange={(e) => setWorkflowKey(e.target.value)}
+                onChange={(e) => handleWorkflowKeyChange(e.target.value)}
                 className="border border-gray-300 rounded-lg p-2 w-full"
                 placeholder="Enter workflow key"
               />
@@ -528,7 +577,9 @@ const WorkflowComponent: React.FC = memo(() => {
               <textarea
                 id="workflow-description"
                 value={workflowDescription}
-                onChange={(e) => setWorkflowDescription(e.target.value)}
+                onChange={(e) =>
+                  handleWorkflowDescriptionChange(e.target.value)
+                }
                 className="border border-gray-300 rounded-lg p-2 w-full"
                 placeholder="Enter workflow description"
               />
@@ -586,7 +637,7 @@ const WorkflowComponent: React.FC = memo(() => {
                     Save
                   </button>
                   <button
-                    onClick={handleDeleteWorkflow}
+                    onClick={handleOpenDeleteDialog}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                   >
                     Delete

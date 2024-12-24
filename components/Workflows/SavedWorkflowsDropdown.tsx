@@ -1,38 +1,27 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useWorkflow } from "@/app/context/WorkflowContext";
 
 const SavedWorkflowsDropdown: React.FC = () => {
-  const {
-    getSavedWorkflows,
-    loadWorkflow,
-    deleteWorkflow,
-    setCurrentWorkflowName,
-  } = useWorkflow();
-  const [savedWorkflows, setSavedWorkflows] = useState<string[]>([]);
-  const workflowsLoaded = useRef(false);
-
-  // Load workflows when the component mounts
-  useEffect(() => {
-    if (!workflowsLoaded.current) {
-      const workflows = getSavedWorkflows();
-      setSavedWorkflows(workflows); // Update state with saved workflows
-      workflowsLoaded.current = true;
-    }
-  }, [getSavedWorkflows]);
+  const { savedWorkflows, loadWorkflow, setCurrentWorkflowName } =
+    useWorkflow();
+  const [selectedWorkflow, setSelectedWorkflow] = useState<string>(""); // Track the selected workflow
 
   const handleLoadWorkflow = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const workflowName = e.target.value;
+    setSelectedWorkflow(workflowName); // Update selected workflow
+
     if (workflowName) {
       loadWorkflow(workflowName);
       setCurrentWorkflowName(workflowName); // Update current workflow name
     }
   };
 
-  const handleDeleteWorkflow = (workflowName: string) => {
-    deleteWorkflow(workflowName);
-    const updatedWorkflows = getSavedWorkflows();
-    setSavedWorkflows(updatedWorkflows); // Update dropdown list after deleting
-  };
+  // Reset the dropdown selection if the workflow list changes
+  useEffect(() => {
+    if (!savedWorkflows.includes(selectedWorkflow)) {
+      setSelectedWorkflow(""); // Reset to "Select a workflow" if the selected one is deleted
+    }
+  }, [savedWorkflows, selectedWorkflow]);
 
   return (
     <div className="mb-4">
@@ -40,7 +29,8 @@ const SavedWorkflowsDropdown: React.FC = () => {
         Load Workflow
       </label>
       <select
-        disabled={savedWorkflows.length == 0}
+        value={selectedWorkflow}
+        disabled={savedWorkflows.length === 0}
         onChange={handleLoadWorkflow}
         className="block w-full p-2 border border-gray-300 rounded-md"
       >

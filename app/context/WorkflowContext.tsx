@@ -311,14 +311,14 @@ export const WorkflowProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const saveWorkflow = (name: string) => {
-    console.log("Saving workflow:", name, state); // Debugging
     const workflowToSave = {
       ...state,
       workflowKey: state.workflowKey,
       workflowDescription: state.workflowDescription,
     };
+
     localStorage.setItem(`workflow_${name}`, JSON.stringify(workflowToSave));
-    setSavedWorkflows(getSavedWorkflows());
+    setSavedWorkflows(getSavedWorkflows()); // Update saved workflows list
   };
 
   const unloadWorkflow = () => {
