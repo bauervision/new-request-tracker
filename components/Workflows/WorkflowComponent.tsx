@@ -164,27 +164,29 @@ const WorkflowComponent: React.FC = memo(() => {
 
   const handleCreateNewWorkflow = () => {
     if (newWorkflowName.trim()) {
-      // Dispatch action to set metadata without initializing a root item
+      const newWorkflowState = {
+        rootItem: undefined, // No root item initially
+        items: {}, // Empty items list
+        workflowKey: workflowKey.trim(),
+        workflowDescription: workflowDescription.trim(),
+      };
+
+      // Dispatch action to initialize the workflow state with metadata
       dispatch({
         type: "loadWorkflow",
-        workflowState: {
-          rootItem: undefined, // No root item initially
-          items: {}, // Empty items list
-          workflowKey: workflowKey.trim(),
-          workflowDescription: workflowDescription.trim(),
-        },
+        workflowState: newWorkflowState,
       });
 
       setCurrentWorkflowName(newWorkflowName); // Set the current workflow name
+      saveWorkflow(newWorkflowName); // Save the workflow immediately
 
-      // Save the workflow immediately
-      saveWorkflow(newWorkflowName);
+      // Sync local state to the new workflow metadata
+      setWorkflowKey(newWorkflowState.workflowKey);
+      setWorkflowDescription(newWorkflowState.workflowDescription);
 
       setNeedsSave(true); // Mark as needing save
 
-      // Clear the input fields
-      setWorkflowKey("");
-      setWorkflowDescription("");
+      // Clear the input fields for future workflow creation
       setNewWorkflowName("");
     } else {
       alert("Workflow requires a name!");
@@ -432,13 +434,25 @@ const WorkflowComponent: React.FC = memo(() => {
   };
 
   useEffect(() => {
-    if (state.workflowKey) {
-      setWorkflowKey(state.workflowKey);
+    console.log(
+      "Syncing metadata:",
+      state.workflowKey,
+      state.workflowDescription
+    );
+
+    if (state.workflowKey !== workflowKey) {
+      setWorkflowKey(state.workflowKey || ""); // Sync workflowKey
     }
-    if (state.workflowDescription) {
-      setWorkflowDescription(state.workflowDescription);
+
+    if (state.workflowDescription !== workflowDescription) {
+      setWorkflowDescription(state.workflowDescription || ""); // Sync workflowDescription
     }
-  }, [state.workflowKey, state.workflowDescription]);
+  }, [
+    state.workflowKey,
+    state.workflowDescription,
+    workflowKey,
+    workflowDescription,
+  ]);
 
   return (
     <div className="p-6 mx-4 bg-slate-200 rounded-xl shadow-md space-y-4 ">
@@ -574,7 +588,8 @@ const WorkflowComponent: React.FC = memo(() => {
               >
                 Workflow Description
               </label>
-              <textarea
+              <input
+                type="text"
                 id="workflow-description"
                 value={workflowDescription}
                 onChange={(e) =>
@@ -612,14 +627,15 @@ const WorkflowComponent: React.FC = memo(() => {
                   value={workflowKey}
                   onChange={(e) => setWorkflowKey(e.target.value)}
                   className="border border-gray-300 rounded-lg p-2"
-                  placeholder="Enter workflow key"
+                  placeholder="Enter workflow key here"
                 />
               </div>
               <div className="flex items-center space-x-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Description:
                 </label>
-                <textarea
+                <input
+                  type="text"
                   value={workflowDescription}
                   onChange={(e) => setWorkflowDescription(e.target.value)}
                   className="border border-gray-300 rounded-lg p-2"
@@ -628,6 +644,7 @@ const WorkflowComponent: React.FC = memo(() => {
               </div>
             </div>
             <div className="flex space-x-2">
+              {/* ADMIN access buttons */}
               {user.role === "admin" && (
                 <>
                   <button
