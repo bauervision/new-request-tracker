@@ -35,7 +35,7 @@ const RequestsLayout: React.FC<NewLayoutProps> = ({
       : " You can only VIEW records here.";
 
   return (
-    <div className="bg-slate-300 container flex flex-col items-start">
+    <div className="bg-slate-300 w-full min-h-screen flex flex-col">
       <FrequentLinks />
       <div className="mx-auto w-11/12 py-4">
         {!isMounted && (
@@ -44,7 +44,7 @@ const RequestsLayout: React.FC<NewLayoutProps> = ({
           </div>
         )}
 
-        <Card>
+        <Card className="flex-grow flex flex-col">
           <CardHeader>
             <div className="flex flex-row space-x-6 justify-between">
               <div>
@@ -62,11 +62,7 @@ const RequestsLayout: React.FC<NewLayoutProps> = ({
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-2">
-            <div className="space-y-1">
-              <div className="gap-4 py-8 requestBG pb-20">{children}</div>
-            </div>
-          </CardContent>
+          <CardContent className="flex-grow">{children}</CardContent>
         </Card>
       </div>
     </div>

@@ -154,7 +154,7 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen flex flex-col">
+    <div className="bg-gray-100 w-full flex flex-col h-full">
       <header className="bg-white shadow p-6">
         <h2 className="text-2xl font-semibold text-center">
           Catēna Data Configuration
@@ -166,101 +166,52 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
         ) : null}
       </header>
 
-      <main className="flex-grow max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left Section */}
-          <section className="bg-white p-6 shadow rounded-lg">
-            <DataHeader title="My Data Schema" />
-            <div className="flex justify-center mt-4">
-              <form>
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      checked={loadSchema}
-                      onChange={() => setLoadSchema(true)}
-                      name="group1"
-                      className="w-4 h-4"
-                    />
-                    <span>Load Schema from CSV</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      onChange={() => setLoadSchema(false)}
-                      name="group1"
-                      className="w-4 h-4"
-                    />
-                    <span>Create New Schema</span>
-                  </label>
-                </div>
-              </form>
-            </div>
+      <main className="flex-grow max-w-7xl mx-auto p-6 flex flex-col w-full">
+        {/* Top Section */}
+        <section className="bg-white p-6 shadow rounded-lg">
+          <h2 className="text-center">Load Schema from CSV file</h2>
 
-            {loadSchema ? (
-              <CSVParser
-                saveParsedData={saveParsedData}
-                setHeaders={handleHeaderCreation}
-                handleDataCreation={handleDataCreation}
-                setSchema={setSchema}
-              />
-            ) : (
-              <AddDataField
-                newValue={newType}
-                newParameter={newParameter}
-                setNewParameter={setNewParameter}
-                setNewValue={setNewType}
-                handleSubmit={handleSubmit}
-              />
-            )}
+          {loadSchema ? (
+            <CSVParser
+              saveParsedData={saveParsedData}
+              setHeaders={handleHeaderCreation}
+              handleDataCreation={handleDataCreation}
+              setSchema={setSchema}
+            />
+          ) : (
+            <AddDataField
+              newValue={newType}
+              newParameter={newParameter}
+              setNewParameter={setNewParameter}
+              setNewValue={setNewType}
+              handleSubmit={handleSubmit}
+            />
+          )}
 
-            {schema && (
-              <SchemaContent
-                currentHeaders={colDefs}
-                list={schema}
-                handleDelete={handleDelete}
-                handleSavingDataset={handleSavingDataset}
-                handleHeaderUpdateType={handleHeaderUpdateType}
-                handleHeaderUpdateParameter={handleHeaderUpdateParameter}
-              />
-            )}
-          </section>
-
-          {/* Right Section */}
-          <section className="bg-white p-6 shadow rounded-lg">
-            {rowData && colDefs ? (
-              <>
-                <DataHeader title="Preview Data" />
-                <AGGrid rows={rowData} columns={colDefs} setHeight="420px" />
-                <p className="text-sm text-gray-500 mt-2">
-                  Scroll down for the full view of the table
-                </p>
-              </>
-            ) : (
-              <div>
-                <DataHeader title="Load Data" />
-                <LoadCSVData handleDataCreation={handleDataCreation} />
-              </div>
-            )}
-          </section>
-        </div>
+          {schema && (
+            <SchemaContent
+              currentHeaders={colDefs}
+              list={schema}
+              handleDelete={handleDelete}
+              handleSavingDataset={handleSavingDataset}
+              handleHeaderUpdateType={handleHeaderUpdateType}
+              handleHeaderUpdateParameter={handleHeaderUpdateParameter}
+            />
+          )}
+        </section>
 
         {/* Bottom Section */}
         {rowData && colDefs && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            <section className="p-6 bg-white shadow rounded-lg">
-              <DataHeader title="My Data" />
+          <section className="bg-white mt-8 p-6 shadow rounded-lg flex-grow w-full">
+            <div className="w-full">
               <AGGrid
                 rows={rowData}
                 columns={colDefs}
                 setHeight="600px"
                 paginate={true}
               />
-            </section>
-            <section className="p-6 bg-white shadow rounded-lg">
-              <AGPieChart data={{ data: rowData }} />
-            </section>
-          </div>
+            </div>
+          </section>
         )}
       </main>
     </div>

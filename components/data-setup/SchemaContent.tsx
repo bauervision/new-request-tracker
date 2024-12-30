@@ -1,8 +1,9 @@
 import React from "react";
 import ListGroup from "react-bootstrap/ListGroup";
-import { Button, Stack } from "react-bootstrap";
+import { Stack } from "react-bootstrap";
 import { DataField } from "./DataField";
 import { ColDef } from "ag-grid-community";
+import { Button } from "../ui/button";
 
 interface SchemaItem {
   id: number;
@@ -57,7 +58,7 @@ export const SchemaContent: React.FC<SchemaContentProps> = ({
           {list &&
             list.length > 0 &&
             list.map((item, i) => (
-              <Stack key={item.parameter}>
+              <Stack direction="horizontal" key={item.parameter}>
                 <ListGroup.Item>
                   <DataField
                     placeholder="Add Parameter"
@@ -74,12 +75,14 @@ export const SchemaContent: React.FC<SchemaContentProps> = ({
             ))}
         </ListGroup>
       </div>
-      <Button type="button" onClick={handleSavingDataset} className="mt-3">
-        <Stack direction="horizontal" gap={3}>
+      <div className="flex justify-center mt-3">
+        <Button
+          onClick={handleSavingDataset}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
           Save Schema
-          <i className="bi bi-floppy"></i>
-        </Stack>
-      </Button>
+        </Button>
+      </div>
     </>
   );
 };

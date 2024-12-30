@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Papa from "papaparse";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 // Define types for props
 interface CSVParserProps {
@@ -87,10 +88,9 @@ export const CSVParser: React.FC<CSVParserProps> = ({
   return (
     <div className="mt-3 p-3">
       <div className="max-w-xl mx-auto">
-        <div className="flex items-center gap-4 mb-3">
-          <input
+        <div className="flex flex-row items-center gap-4 mb-3">
+          <Input
             type="file"
-            id="inputGroupFile02"
             onChange={handleFileChange}
             className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
           />

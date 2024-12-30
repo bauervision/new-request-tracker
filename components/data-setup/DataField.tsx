@@ -1,7 +1,13 @@
 import React from "react";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-import { InputGroup, Stack } from "react-bootstrap";
+import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import { Button } from "../ui/button";
 
 interface DataFieldProps {
   newParameter: string;
@@ -14,6 +20,14 @@ interface DataFieldProps {
   dataType: string;
 }
 
+const dataTypes = [
+  { value: "int", label: "Integer" },
+  { value: "string", label: "String" },
+  { value: "Date", label: "Date" },
+  { value: "float", label: "Float" },
+  { value: "bool", label: "Boolean" },
+];
+
 export const DataField: React.FC<DataFieldProps> = ({
   newParameter,
   setNewParameter,
@@ -25,36 +39,39 @@ export const DataField: React.FC<DataFieldProps> = ({
   dataType,
 }) => {
   return (
-    <div className="p-3">
-      <Form onSubmit={handleSubmit}>
-        <Stack direction="horizontal" gap={3} className="mb-3">
-          <InputGroup>
-            <Form.Control
-              value={newParameter}
-              placeholder={placeholder}
-              aria-label={placeholder}
-              onChange={(e) => setNewParameter(e.target.value, index)}
-            />
-          </InputGroup>
+    <div className="p-3 w-full bg-slate-100 my-2 rounded-md">
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center gap-4 w-full">
+          {/* Input Field */}
+          <div className="flex-grow">{newParameter}</div>
 
-          <Form.Select
-            value={dataType}
-            aria-label="Default select example"
-            onChange={(e) => setNewValue(e.target.value, index)}
+          {/* Select Dropdown */}
+          <Select
+            onValueChange={(value) => setNewValue(value, index)}
+            defaultValue={dataType}
           >
-            <option>Set Data Type</option>
-            <option value="int">Integer</option>
-            <option value="string">String</option>
-            <option value="Date">Date</option>
-            <option value="float">Float</option>
-            <option value="bool">Boolean</option>
-          </Form.Select>
+            <SelectTrigger className="w-1/4">
+              <SelectValue placeholder="Select Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {dataTypes.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <Button type="button" onClick={() => handleDelete(index)}>
-            <i className="bi bi-trash3"></i>
+          {/* Delete Button */}
+          <Button
+            variant="outline"
+            onClick={() => handleDelete(index)}
+            type="button"
+          >
+            Delete
           </Button>
-        </Stack>
-      </Form>
+        </div>
+      </form>
     </div>
   );
 };
