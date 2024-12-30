@@ -3,6 +3,7 @@ export const adminData = [
   { title: "Site Administration", url: "/request-tracker/admin/site-admin" },
   { title: "Request Tracker Settings", url: "/request-tracker/admin/settings" },
   { title: "Account Information", url: "/request-tracker/admin/account-info" },
+  { title: "Data Management", url: "/request-tracker/admin/data-management" },
 ];
 
 export const programManagementData = [
