@@ -9,6 +9,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SideBar } from "@/components/SideBar";
 import { UserProvider } from "./context/UserContext";
 import { WorkflowProvider } from "./context/WorkflowContext";
+import { SchemaProvider } from "./context/SchemaContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -47,7 +48,9 @@ export default function RootLayout({
                     <SideBar />
                     <SidebarTrigger />
                     <WorkflowProvider>
-                      <RequestProvider>{children}</RequestProvider>
+                      <SchemaProvider>
+                        <RequestProvider>{children}</RequestProvider>
+                      </SchemaProvider>
                     </WorkflowProvider>
                   </SidebarProvider>
                 </ToastContextProvider>
