@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
@@ -17,9 +17,6 @@ export const AGGrid: React.FC<AGGridProps> = ({
   paginate,
   setHeight,
 }) => {
-  const [rowData, setRowData] = useState<any[]>(rows);
-  const [colDefs, setColumnDefs] = useState<any[]>(columns);
-
   const defaultColDef = {
     initialWidth: 200,
     wrapHeaderText: true,
@@ -32,8 +29,8 @@ export const AGGrid: React.FC<AGGridProps> = ({
       style={{ width: "100%", height: setHeight }}
     >
       <AgGridReact
-        rowData={rowData}
-        columnDefs={colDefs}
+        rowData={rows} // Use props directly
+        columnDefs={columns} // Use props directly
         defaultColDef={defaultColDef}
         pagination={paginate}
       />

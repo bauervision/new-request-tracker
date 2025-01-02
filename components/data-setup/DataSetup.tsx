@@ -23,18 +23,66 @@ interface SchemaItem {
   parameter: string;
 }
 
-const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
-  const { schema, setSchema, rowData, setRowData, colDefs, setColDefs } =
-    useSchema();
+interface StrictColDef extends Omit<ColDef<any, any>, "field"> {
+  field: string; // Ensure the field is strictly a string
+}
 
-  useEffect(() => {
-    // Initialize context state from `myData` if provided
-    if (myData) {
-      setRowData(myData.data || []);
-      setColDefs(myData.headers || []);
-      setSchema(myData.schema || []);
-    }
-  }, [myData, setSchema, setRowData, setColDefs]);
+const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
+  const {
+    schema,
+    setSchema,
+    rowData,
+    setRowData,
+    colDefs,
+    setColDefs,
+    clearLocalData,
+  } = useSchema();
+
+  // useEffect(() => {
+  //   if (schema && schema.length > 0) {
+  //     // Map schema to ColDef array
+  //     const updatedColDefs = schema.map((item) => {
+  //       return {
+  //         field: item.parameter || "defaultField", // Ensure field is always a string
+  //         headerName: item.parameter || "Default Header", // Fallback for header name
+  //         filter:
+  //           item.type === "date"
+  //             ? "agDateColumnFilter"
+  //             : item.type === "int" || item.type === "float"
+  //             ? "agNumberColumnFilter"
+  //             : "agTextColumnFilter", // Set filter based on type
+  //         ...(item.type === "int" || item.type === "float"
+  //           ? {
+  //               comparator: (valueA: any, valueB: any) =>
+  //                 Number(valueA) - Number(valueB), // Comparator for numbers
+  //             }
+  //           : {}),
+  //       } as ColDef; // Force type assertion to ColDef
+  //     });
+
+  //     // Use type casting utility
+  //     const enforceColDefs = (defs: ColDef[]): ColDef[] => defs;
+
+  //     // Avoid unnecessary updates
+  //     if (JSON.stringify(colDefs) !== JSON.stringify(updatedColDefs)) {
+  //       setColDefs(enforceColDefs(updatedColDefs)); // Enforce type compatibility
+  //     }
+  //   } else {
+  //     // Fallback to default columns if schema is empty
+  //     const defaultColDefs: ColDef[] = [
+  //       {
+  //         field: "defaultField", // Default fallback field
+  //         headerName: "Default Header", // Fallback header
+  //         filter: "agTextColumnFilter", // Default text filter
+  //       },
+  //     ];
+
+  //     // Avoid unnecessary updates
+  //     if (JSON.stringify(colDefs) !== JSON.stringify(defaultColDefs)) {
+  //       setColDefs(defaultColDefs);
+  //     }
+  //   }
+  // }, [schema, colDefs, setColDefs]);
 
   const handleSavingDataset = () => {
     if (!schema || schema.length === 0) {
@@ -44,12 +92,56 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
     alert("Saving Dataset...");
   };
 
+  const handleClearData = () => {
+    clearLocalData();
+  };
+
+  const handleHeaderUpdateType = (
+    newSchemaArray: SchemaItem[],
+    updatedIndex: number
+  ) => {
+    setSchema(newSchemaArray);
+
+    const updatedColDefs: StrictColDef[] = newSchemaArray.map((item) => ({
+      field: item.parameter || "", // Ensure field is never undefined
+      filter: item.type === "date" ? "agDateColumnFilter" : undefined,
+      comparator:
+        item.type === "int" || item.type === "float"
+          ? (valueA: any, valueB: any) => valueA - valueB
+          : undefined,
+    }));
+
+    setColDefs(updatedColDefs); // Pass the strictly typed array
+  };
+
+  const handleHeaderUpdateParameter = (
+    updatedParameters: Partial<SchemaItem>[],
+    index: number
+  ) => {
+    if (!schema) return;
+
+    const updatedSchema = schema.map((item, idx) =>
+      idx === index ? { ...item, ...updatedParameters[index] } : item
+    );
+
+    setSchema(updatedSchema);
+  };
+
   return (
     <div className="bg-gray-100 w-full flex flex-col h-full">
       <header className="bg-white shadow p-6">
         <h2 className="text-2xl font-semibold text-center">
           Catēna Data Configuration
         </h2>
+
+        {/* Reset Data Button
+        <button
+          onClick={handleClearData}
+          className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Reset All Data
+        </button> */}
+
         {schema && schema.length > 0 ? (
           <p className="text-center text-green-600 mt-3">
             A saved schema was loaded for review.
@@ -72,18 +164,8 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
                 setSchema(schema?.filter((item) => item.id !== id) || [])
               }
               handleSavingDataset={handleSavingDataset}
-              handleHeaderUpdateType={(newSchemaArray) =>
-                setSchema(newSchemaArray)
-              }
-              handleHeaderUpdateParameter={(updatedParameters, index) => {
-                const updatedSchema =
-                  schema?.map((item, idx) =>
-                    idx === index
-                      ? { ...item, ...updatedParameters[index] }
-                      : item
-                  ) || [];
-                setSchema(updatedSchema);
-              }}
+              handleHeaderUpdateType={handleHeaderUpdateType}
+              handleHeaderUpdateParameter={handleHeaderUpdateParameter}
             />
           </section>
         ) : (

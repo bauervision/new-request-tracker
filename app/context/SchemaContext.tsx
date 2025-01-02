@@ -29,6 +29,7 @@ export interface SchemaContextType {
   setRowData: (data: any[] | null) => void;
   colDefs: ColDef[] | null;
   setColDefs: (defs: ColDef[] | null) => void;
+  clearLocalData: () => void;
 }
 
 const SCHEMA_STORAGE_KEY = "schema_data";
@@ -75,9 +76,28 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     else localStorage.removeItem(COL_DEFS_STORAGE_KEY);
   };
 
+  // Method to clear all local data
+  const clearLocalData = () => {
+    localStorage.removeItem(SCHEMA_STORAGE_KEY);
+    localStorage.removeItem(ROW_DATA_STORAGE_KEY);
+    localStorage.removeItem(COL_DEFS_STORAGE_KEY);
+    setSchemaState(null);
+    setRowDataState(null);
+    setColDefsState(null);
+    console.log("Local data cleared.");
+  };
+
   return (
     <SchemaContext.Provider
-      value={{ schema, setSchema, rowData, setRowData, colDefs, setColDefs }}
+      value={{
+        schema,
+        setSchema,
+        rowData,
+        setRowData,
+        colDefs,
+        setColDefs,
+        clearLocalData,
+      }}
     >
       {children}
     </SchemaContext.Provider>
