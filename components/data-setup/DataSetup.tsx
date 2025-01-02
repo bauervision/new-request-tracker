@@ -38,51 +38,50 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
     clearLocalData,
   } = useSchema();
 
-  // useEffect(() => {
-  //   if (schema && schema.length > 0) {
-  //     // Map schema to ColDef array
-  //     const updatedColDefs = schema.map((item) => {
-  //       return {
-  //         field: item.parameter || "defaultField", // Ensure field is always a string
-  //         headerName: item.parameter || "Default Header", // Fallback for header name
-  //         filter:
-  //           item.type === "date"
-  //             ? "agDateColumnFilter"
-  //             : item.type === "int" || item.type === "float"
-  //             ? "agNumberColumnFilter"
-  //             : "agTextColumnFilter", // Set filter based on type
-  //         ...(item.type === "int" || item.type === "float"
-  //           ? {
-  //               comparator: (valueA: any, valueB: any) =>
-  //                 Number(valueA) - Number(valueB), // Comparator for numbers
-  //             }
-  //           : {}),
-  //       } as ColDef; // Force type assertion to ColDef
-  //     });
+  useEffect(() => {
+    // Ensure column definitions are created on page load and schema change
+    const initializeColDefs = () => {
+      if (schema && schema.length > 0) {
+        const updatedColDefs: StrictColDef[] = schema.map((item) => ({
+          field: item.parameter || "", // Ensure field is never undefined
+          filter:
+            item.type === "date"
+              ? "agDateColumnFilter"
+              : item.type === "int" || item.type === "float"
+              ? "agNumberColumnFilter"
+              : "agTextColumnFilter", // Dynamically set filter type
+          ...(item.type === "int" || item.type === "float"
+            ? {
+                comparator: (valueA: any, valueB: any) =>
+                  Number(valueA) - Number(valueB), // Numeric comparator for sorting
+              }
+            : {}),
+        }));
 
-  //     // Use type casting utility
-  //     const enforceColDefs = (defs: ColDef[]): ColDef[] => defs;
+        // Update column definitions
+        if (JSON.stringify(colDefs) !== JSON.stringify(updatedColDefs)) {
+          setColDefs(updatedColDefs);
+        }
+      } else {
+        // Fallback column definitions
+        const defaultColDefs: StrictColDef[] = [
+          {
+            field: "defaultField",
+            headerName: "Default Header",
+            filter: "agTextColumnFilter",
+          },
+        ];
 
-  //     // Avoid unnecessary updates
-  //     if (JSON.stringify(colDefs) !== JSON.stringify(updatedColDefs)) {
-  //       setColDefs(enforceColDefs(updatedColDefs)); // Enforce type compatibility
-  //     }
-  //   } else {
-  //     // Fallback to default columns if schema is empty
-  //     const defaultColDefs: ColDef[] = [
-  //       {
-  //         field: "defaultField", // Default fallback field
-  //         headerName: "Default Header", // Fallback header
-  //         filter: "agTextColumnFilter", // Default text filter
-  //       },
-  //     ];
+        // Set default columns
+        if (JSON.stringify(colDefs) !== JSON.stringify(defaultColDefs)) {
+          setColDefs(defaultColDefs);
+        }
+      }
+    };
 
-  //     // Avoid unnecessary updates
-  //     if (JSON.stringify(colDefs) !== JSON.stringify(defaultColDefs)) {
-  //       setColDefs(defaultColDefs);
-  //     }
-  //   }
-  // }, [schema, colDefs, setColDefs]);
+    // Run on page load
+    initializeColDefs();
+  }, [schema, colDefs, setColDefs]);
 
   const handleSavingDataset = () => {
     if (!schema || schema.length === 0) {
@@ -104,11 +103,18 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
 
     const updatedColDefs: StrictColDef[] = newSchemaArray.map((item) => ({
       field: item.parameter || "", // Ensure field is never undefined
-      filter: item.type === "date" ? "agDateColumnFilter" : undefined,
-      comparator:
-        item.type === "int" || item.type === "float"
-          ? (valueA: any, valueB: any) => valueA - valueB
-          : undefined,
+      filter:
+        item.type === "date"
+          ? "agDateColumnFilter"
+          : item.type === "int" || item.type === "float"
+          ? "agNumberColumnFilter"
+          : "agTextColumnFilter", // Dynamically set filter type
+      ...(item.type === "int" || item.type === "float"
+        ? {
+            comparator: (valueA: any, valueB: any) =>
+              Number(valueA) - Number(valueB), // Numeric comparator for sorting
+          }
+        : {}),
     }));
 
     setColDefs(updatedColDefs); // Pass the strictly typed array
