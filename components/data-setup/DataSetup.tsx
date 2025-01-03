@@ -40,10 +40,9 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
   } = useSchema();
 
   useEffect(() => {
-    // Ensure column definitions are created on page load and schema change
-    const initializeColDefs = () => {
-      if (schema && schema.length > 0) {
-        const updatedColDefs: StrictColDef[] = schema.map((item) => ({
+    if (schema && schema.length > 0) {
+      const updatedColDefs = schema.map((item) => {
+        const colDef: StrictColDef = {
           field: item.parameter || "",
           filter:
             item.type === FIELD_TYPES.DATE
@@ -52,38 +51,38 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
                 item.type === FIELD_TYPES.FLOAT
               ? "agNumberColumnFilter"
               : "agTextColumnFilter",
+          ...(item.type === FIELD_TYPES.DATE && {
+            filterParams: {
+              comparator: (filterDate: Date, cellValue: string) => {
+                if (!cellValue) return -1; // Treat empty cells as unmatched
+
+                // Parse "MM/DD/YYYY 0:00" to Date object
+                const [datePart] = cellValue.split(" "); // Extract "MM/DD/YYYY"
+                const cellDate = new Date(datePart); // Create Date object from date part
+
+                if (isNaN(cellDate.getTime())) return -1; // Handle invalid dates
+
+                if (filterDate.getTime() === cellDate.getTime()) return 0;
+                return filterDate.getTime() > cellDate.getTime() ? -1 : 1;
+              },
+              browserDatePicker: true, // Use native browser date picker
+            },
+          }),
           ...(item.type === FIELD_TYPES.NUMBER ||
           item.type === FIELD_TYPES.FLOAT
             ? {
                 comparator: (valueA: any, valueB: any) =>
-                  Number(valueA) - Number(valueB),
+                  Number(valueA) - Number(valueB), // Numeric sorting
               }
             : {}),
-        }));
+        };
+        return colDef;
+      });
 
-        // Update column definitions
-        if (JSON.stringify(colDefs) !== JSON.stringify(updatedColDefs)) {
-          setColDefs(updatedColDefs);
-        }
-      } else {
-        // Fallback column definitions
-        const defaultColDefs: StrictColDef[] = [
-          {
-            field: "defaultField",
-            headerName: "Default Header",
-            filter: "agTextColumnFilter",
-          },
-        ];
-
-        // Set default columns
-        if (JSON.stringify(colDefs) !== JSON.stringify(defaultColDefs)) {
-          setColDefs(defaultColDefs);
-        }
+      if (JSON.stringify(colDefs) !== JSON.stringify(updatedColDefs)) {
+        setColDefs(updatedColDefs);
       }
-    };
-
-    // Run on page load
-    initializeColDefs();
+    }
   }, [schema, colDefs, setColDefs]);
 
   const handleSavingDataset = () => {
@@ -104,21 +103,42 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
   ) => {
     setSchema(newSchemaArray);
 
-    const updatedColDefs: StrictColDef[] = newSchemaArray.map((item) => ({
-      field: item.parameter || "",
-      filter:
-        item.type === FIELD_TYPES.DATE
-          ? "agDateColumnFilter"
-          : item.type === FIELD_TYPES.NUMBER || item.type === FIELD_TYPES.FLOAT
-          ? "agNumberColumnFilter"
-          : "agTextColumnFilter",
-      ...(item.type === FIELD_TYPES.NUMBER || item.type === FIELD_TYPES.FLOAT
-        ? {
-            comparator: (valueA: any, valueB: any) =>
-              Number(valueA) - Number(valueB),
-          }
-        : {}),
-    }));
+    const updatedColDefs = newSchemaArray.map((item) => {
+      const colDef: StrictColDef = {
+        field: item.parameter || "",
+        filter:
+          item.type === FIELD_TYPES.DATE
+            ? "agDateColumnFilter"
+            : item.type === FIELD_TYPES.NUMBER ||
+              item.type === FIELD_TYPES.FLOAT
+            ? "agNumberColumnFilter"
+            : "agTextColumnFilter",
+        ...(item.type === FIELD_TYPES.DATE && {
+          filterParams: {
+            comparator: (filterDate: Date, cellValue: string) => {
+              if (!cellValue) return -1; // Treat empty cells as unmatched
+
+              // Parse "MM/DD/YYYY 0:00" to Date object
+              const [datePart] = cellValue.split(" "); // Extract "MM/DD/YYYY"
+              const cellDate = new Date(datePart); // Create Date object from date part
+
+              if (isNaN(cellDate.getTime())) return -1; // Handle invalid dates
+
+              if (filterDate.getTime() === cellDate.getTime()) return 0;
+              return filterDate.getTime() > cellDate.getTime() ? -1 : 1;
+            },
+            browserDatePicker: true, // Use native browser date picker
+          },
+        }),
+        ...(item.type === FIELD_TYPES.NUMBER || item.type === FIELD_TYPES.FLOAT
+          ? {
+              comparator: (valueA: any, valueB: any) =>
+                Number(valueA) - Number(valueB), // Numeric sorting
+            }
+          : {}),
+      };
+      return colDef;
+    });
 
     setColDefs(updatedColDefs); // Pass the strictly typed array
   };
