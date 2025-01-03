@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { Button } from "../ui/button";
+import { FIELD_TYPES } from "@/app/constants"; // Import FIELD_TYPES
 
 interface DataFieldProps {
   newParameter: string;
@@ -18,14 +19,23 @@ interface DataFieldProps {
   index: number;
   handleDelete: (index: number) => void;
   dataType: string;
+  selectedFormat: string | null; // Add for selected date format
+  handleDateFormatChange: (index: number, format: string) => void; // Callback for date format change
 }
 
 const dataTypes = [
-  { value: "int", label: "Integer" },
-  { value: "string", label: "String" },
-  { value: "Date", label: "Date" },
-  { value: "float", label: "Float" },
-  { value: "bool", label: "Boolean" },
+  { value: FIELD_TYPES.NUMBER, label: "Integer" },
+  { value: FIELD_TYPES.TEXT, label: "String" },
+  { value: FIELD_TYPES.DATE, label: "Date" },
+  { value: FIELD_TYPES.FLOAT, label: "Float" },
+  { value: FIELD_TYPES.BOOLEAN, label: "Boolean" },
+];
+
+const DATE_FORMAT_OPTIONS = [
+  "MM/DD/YYYY",
+  "DD/MM/YYYY",
+  "YYYY-MM-DD",
+  "MMM DD, YYYY",
 ];
 
 export const DataField: React.FC<DataFieldProps> = ({
@@ -37,21 +47,31 @@ export const DataField: React.FC<DataFieldProps> = ({
   index,
   handleDelete,
   dataType,
+  selectedFormat,
+  handleDateFormatChange,
 }) => {
   return (
     <div className="p-3 w-full bg-slate-100 my-2 rounded-md">
       <form onSubmit={handleSubmit}>
         <div className="flex items-center gap-4 w-full">
-          {/* Input Field */}
-          <div className="flex-grow">{newParameter}</div>
+          {/* Parameter Name Input */}
+          <Input
+            className="flex-grow"
+            placeholder={placeholder}
+            value={newParameter}
+            onChange={(e) => setNewParameter(e.target.value, index)}
+          />
 
-          {/* Select Dropdown */}
+          {/* Type Dropdown */}
           <Select
             onValueChange={(value) => setNewValue(value, index)}
-            defaultValue={dataType}
+            value={dataType} // Use "string" as the default type in schema
           >
             <SelectTrigger className="w-1/4">
-              <SelectValue placeholder="Select Type" />
+              <SelectValue>
+                {dataTypes.find((type) => type.value === dataType)?.label ||
+                  "String"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {dataTypes.map((type) => (
@@ -61,6 +81,26 @@ export const DataField: React.FC<DataFieldProps> = ({
               ))}
             </SelectContent>
           </Select>
+
+          {/* Conditional Date Format Dropdown */}
+          {dataType === FIELD_TYPES.DATE && (
+            <div className="ml-3">
+              <select
+                className="form-select"
+                value={selectedFormat || ""}
+                onChange={(e) => handleDateFormatChange(index, e.target.value)}
+              >
+                <option value="" disabled>
+                  Select Date Format
+                </option>
+                {DATE_FORMAT_OPTIONS.map((format) => (
+                  <option key={format} value={format}>
+                    {format}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Delete Button */}
           <Button

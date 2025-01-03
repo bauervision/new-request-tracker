@@ -7,6 +7,7 @@ import { SchemaContent } from "./SchemaContent";
 import { CSVParser } from "./CSVParser";
 import { AGGrid } from "./AGGrid";
 import { useSchema } from "@/app/context/SchemaContext";
+import { FIELD_TYPES } from "@/app/constants";
 
 interface DataSetupProps {
   myData?: {
@@ -43,17 +44,19 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
     const initializeColDefs = () => {
       if (schema && schema.length > 0) {
         const updatedColDefs: StrictColDef[] = schema.map((item) => ({
-          field: item.parameter || "", // Ensure field is never undefined
+          field: item.parameter || "",
           filter:
-            item.type === "date"
+            item.type === FIELD_TYPES.DATE
               ? "agDateColumnFilter"
-              : item.type === "int" || item.type === "float"
+              : item.type === FIELD_TYPES.NUMBER ||
+                item.type === FIELD_TYPES.FLOAT
               ? "agNumberColumnFilter"
-              : "agTextColumnFilter", // Dynamically set filter type
-          ...(item.type === "int" || item.type === "float"
+              : "agTextColumnFilter",
+          ...(item.type === FIELD_TYPES.NUMBER ||
+          item.type === FIELD_TYPES.FLOAT
             ? {
                 comparator: (valueA: any, valueB: any) =>
-                  Number(valueA) - Number(valueB), // Numeric comparator for sorting
+                  Number(valueA) - Number(valueB),
               }
             : {}),
         }));
@@ -102,17 +105,17 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
     setSchema(newSchemaArray);
 
     const updatedColDefs: StrictColDef[] = newSchemaArray.map((item) => ({
-      field: item.parameter || "", // Ensure field is never undefined
+      field: item.parameter || "",
       filter:
-        item.type === "date"
+        item.type === FIELD_TYPES.DATE
           ? "agDateColumnFilter"
-          : item.type === "int" || item.type === "float"
+          : item.type === FIELD_TYPES.NUMBER || item.type === FIELD_TYPES.FLOAT
           ? "agNumberColumnFilter"
-          : "agTextColumnFilter", // Dynamically set filter type
-      ...(item.type === "int" || item.type === "float"
+          : "agTextColumnFilter",
+      ...(item.type === FIELD_TYPES.NUMBER || item.type === FIELD_TYPES.FLOAT
         ? {
             comparator: (valueA: any, valueB: any) =>
-              Number(valueA) - Number(valueB), // Numeric comparator for sorting
+              Number(valueA) - Number(valueB),
           }
         : {}),
     }));
@@ -132,6 +135,10 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
 
     setSchema(updatedSchema);
   };
+
+  useEffect(() => {
+    console.log("Schema updated:", schema);
+  }, [schema]);
 
   return (
     <div className="bg-gray-100 w-full flex flex-col h-full">

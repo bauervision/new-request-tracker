@@ -1,18 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
 import { Stack } from "react-bootstrap";
 import { DataField } from "./DataField";
 import { ColDef } from "ag-grid-community";
 import { Button } from "../ui/button";
+import { FIELD_TYPES } from "@/app/constants";
 
 interface SchemaItem {
   id: number;
   type: string;
   parameter: string;
+  format?: string;
 }
 
 interface SchemaContentProps {
-  currentHeaders?: ColDef[]; // Add this to the props
+  currentHeaders?: ColDef[];
   list: SchemaItem[];
   handleDelete: (index: number) => void;
   handleSavingDataset: () => void;
@@ -26,6 +28,13 @@ interface SchemaContentProps {
   ) => void;
 }
 
+const DATE_FORMAT_OPTIONS = [
+  "MM/DD/YYYY",
+  "DD/MM/YYYY",
+  "YYYY-MM-DD",
+  "MMM DD, YYYY",
+];
+
 export const SchemaContent: React.FC<SchemaContentProps> = ({
   list,
   handleDelete,
@@ -33,11 +42,29 @@ export const SchemaContent: React.FC<SchemaContentProps> = ({
   handleHeaderUpdateType,
   handleHeaderUpdateParameter,
 }) => {
+  const [selectedFormats, setSelectedFormats] = useState<
+    Record<number, string>
+  >({});
+
+  useEffect(() => {
+    const initialFormats: Record<number, string> = {};
+    list.forEach((item) => {
+      if (item.type === FIELD_TYPES.DATE && item.format) {
+        initialFormats[item.id] = item.format;
+      }
+    });
+    setSelectedFormats(initialFormats);
+  }, [list]);
+
   const setNewValue = (newTypeValue: string, updatedIndex: number) => {
+    const normalizedType = newTypeValue.toLowerCase();
+    if (!Object.values(FIELD_TYPES).includes(normalizedType)) {
+      console.error(`Invalid type: ${normalizedType}`);
+      return;
+    }
+
     const updatedSchema = list.map((item) =>
-      item.id === updatedIndex
-        ? { id: item.id, type: newTypeValue, parameter: item.parameter }
-        : item
+      item.id === updatedIndex ? { ...item, type: normalizedType } : item
     );
     handleHeaderUpdateType(updatedSchema, updatedIndex);
   };
@@ -51,6 +78,15 @@ export const SchemaContent: React.FC<SchemaContentProps> = ({
     handleHeaderUpdateParameter(updatedParameters, index);
   };
 
+  const handleDateFormatChange = (id: number, format: string) => {
+    setSelectedFormats((prev) => ({ ...prev, [id]: format }));
+
+    const updatedSchema = list.map((item) =>
+      item.id === id ? { ...item, format } : item
+    );
+    handleHeaderUpdateParameter(updatedSchema, id);
+  };
+
   return (
     <>
       <div className="overflow-y-auto max-h-72 border p-4 rounded-md">
@@ -59,10 +95,12 @@ export const SchemaContent: React.FC<SchemaContentProps> = ({
             list.length > 0 &&
             list.map((item, i) => (
               <Stack direction="horizontal" key={item.parameter}>
-                <ListGroup.Item>
+                <ListGroup.Item className="flex items-center w-full">
                   <DataField
                     placeholder="Add Parameter"
                     newParameter={item.parameter}
+                    selectedFormat={selectedFormats[item.id] || null}
+                    handleDateFormatChange={handleDateFormatChange}
                     index={i}
                     setNewValue={setNewValue}
                     setNewParameter={setNewParameter}
