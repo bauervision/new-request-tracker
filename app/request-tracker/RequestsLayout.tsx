@@ -53,7 +53,7 @@ const RequestsLayout: React.FC<NewLayoutProps> = ({
                 <CardDescription>{userAccess}</CardDescription>
               </div>
               {pageComponents && pageComponents.length > 0 && (
-                <div className="flex flex-row space-x-6 justify-between">
+                <div className="flex flex-row space-x-6 justify-between items-center">
                   {React.Children.map(pageComponents, (child, index) => (
                     <div key={index}>{child}</div>
                   ))}

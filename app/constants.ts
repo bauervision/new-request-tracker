@@ -1,6 +1,6 @@
 // constants.ts
 export const FIELD_TYPES = {
-  TEXT: "text",
+  TEXT: "string",
   NUMBER: "int",
   FLOAT: "float",
   DATE: "date",
