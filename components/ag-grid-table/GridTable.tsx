@@ -7,6 +7,9 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 
 import { useSchema } from "@/app/context/SchemaContext";
 import { Skeleton } from "../ui/skeleton";
+import Link from "next/link";
+import { handleLinkClick } from "@/app/utils/trackLinkClicks";
+import { Button } from "../ui/button";
 
 const GridTable = () => {
   const { colDefs, rowData } = useSchema(); // Pull colDefs and rowData from context
@@ -44,9 +47,21 @@ const GridTable = () => {
       {/* Show message if no data is available */}
       {!colDefs || !rowData ? (
         <div className="flex flex-col justify-center items-center h-full">
-          <p className="text-gray-500 text-lg">
-            No data found. Please ensure schema and row data are saved.
-          </p>
+          <Link
+            href="request-tracker/admin/data-management"
+            passHref
+            onClick={() =>
+              handleLinkClick("request-tracker/admin/data-management")
+            }
+          >
+            <Button
+              asChild
+              className="bg-blue-800 text-white"
+              variant={"outline"}
+            >
+              No data found. Please ensure schema and row data are saved here.
+            </Button>
+          </Link>
         </div>
       ) : (
         <AgGridReact

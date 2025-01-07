@@ -58,7 +58,9 @@ export const SchemaContent: React.FC<SchemaContentProps> = ({
 
   const setNewValue = (newTypeValue: string, updatedIndex: number) => {
     const normalizedType = newTypeValue.toLowerCase();
-    if (!Object.values(FIELD_TYPES).includes(normalizedType)) {
+    const validTypes = Object.values(FIELD_TYPES);
+
+    if (!validTypes.includes(normalizedType)) {
       console.error(`Invalid type: ${normalizedType}`);
       return;
     }
@@ -71,9 +73,7 @@ export const SchemaContent: React.FC<SchemaContentProps> = ({
 
   const setNewParameter = (parameter: string, index: number) => {
     const updatedParameters = list.map((item) =>
-      item.id === index
-        ? { id: item.id, type: item.type, parameter: parameter }
-        : item
+      item.id === index ? { id: item.id, type: item.type, parameter } : item
     );
     handleHeaderUpdateParameter(updatedParameters, index);
   };

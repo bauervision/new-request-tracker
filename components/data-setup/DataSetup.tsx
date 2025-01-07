@@ -48,7 +48,8 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
             item.type === FIELD_TYPES.DATE
               ? "agDateColumnFilter"
               : item.type === FIELD_TYPES.NUMBER ||
-                item.type === FIELD_TYPES.FLOAT
+                item.type === FIELD_TYPES.FLOAT ||
+                item.type === FIELD_TYPES.CURRENCY
               ? "agNumberColumnFilter"
               : "agTextColumnFilter",
           ...(item.type === FIELD_TYPES.DATE && {
@@ -56,25 +57,34 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
               comparator: (filterDate: Date, cellValue: string) => {
                 if (!cellValue) return -1; // Treat empty cells as unmatched
 
-                // Parse "MM/DD/YYYY 0:00" to Date object
-                const [datePart] = cellValue.split(" "); // Extract "MM/DD/YYYY"
-                const cellDate = new Date(datePart); // Create Date object from date part
+                const [datePart] = cellValue.split(" ");
+                const cellDate = new Date(datePart);
 
-                if (isNaN(cellDate.getTime())) return -1; // Handle invalid dates
+                if (isNaN(cellDate.getTime())) return -1;
 
                 if (filterDate.getTime() === cellDate.getTime()) return 0;
                 return filterDate.getTime() > cellDate.getTime() ? -1 : 1;
               },
-              browserDatePicker: true, // Use native browser date picker
+              browserDatePicker: true,
             },
           }),
           ...(item.type === FIELD_TYPES.NUMBER ||
-          item.type === FIELD_TYPES.FLOAT
+          item.type === FIELD_TYPES.FLOAT ||
+          item.type === FIELD_TYPES.CURRENCY
             ? {
                 comparator: (valueA: any, valueB: any) =>
                   Number(valueA) - Number(valueB), // Numeric sorting
               }
             : {}),
+          ...(item.type === FIELD_TYPES.CURRENCY && {
+            valueFormatter: (params) =>
+              params.value
+                ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                  }).format(params.value)
+                : "",
+          }),
         };
         return colDef;
       });
@@ -110,37 +120,48 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
           item.type === FIELD_TYPES.DATE
             ? "agDateColumnFilter"
             : item.type === FIELD_TYPES.NUMBER ||
-              item.type === FIELD_TYPES.FLOAT
+              item.type === FIELD_TYPES.FLOAT ||
+              item.type === FIELD_TYPES.CURRENCY
             ? "agNumberColumnFilter"
             : "agTextColumnFilter",
         ...(item.type === FIELD_TYPES.DATE && {
           filterParams: {
             comparator: (filterDate: Date, cellValue: string) => {
-              if (!cellValue) return -1; // Treat empty cells as unmatched
+              if (!cellValue) return -1;
 
-              // Parse "MM/DD/YYYY 0:00" to Date object
-              const [datePart] = cellValue.split(" "); // Extract "MM/DD/YYYY"
-              const cellDate = new Date(datePart); // Create Date object from date part
+              const [datePart] = cellValue.split(" ");
+              const cellDate = new Date(datePart);
 
-              if (isNaN(cellDate.getTime())) return -1; // Handle invalid dates
+              if (isNaN(cellDate.getTime())) return -1;
 
               if (filterDate.getTime() === cellDate.getTime()) return 0;
               return filterDate.getTime() > cellDate.getTime() ? -1 : 1;
             },
-            browserDatePicker: true, // Use native browser date picker
+            browserDatePicker: true,
           },
         }),
-        ...(item.type === FIELD_TYPES.NUMBER || item.type === FIELD_TYPES.FLOAT
+        ...(item.type === FIELD_TYPES.NUMBER ||
+        item.type === FIELD_TYPES.FLOAT ||
+        item.type === FIELD_TYPES.CURRENCY
           ? {
               comparator: (valueA: any, valueB: any) =>
-                Number(valueA) - Number(valueB), // Numeric sorting
+                Number(valueA) - Number(valueB),
             }
           : {}),
+        ...(item.type === FIELD_TYPES.CURRENCY && {
+          valueFormatter: (params) =>
+            params.value
+              ? new Intl.NumberFormat("en-US", {
+                  style: "currency",
+                  currency: "USD",
+                }).format(params.value)
+              : "",
+        }),
       };
       return colDef;
     });
 
-    setColDefs(updatedColDefs); // Pass the strictly typed array
+    setColDefs(updatedColDefs);
   };
 
   const handleHeaderUpdateParameter = (
@@ -167,14 +188,6 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
           Catēna Data Configuration
         </h2>
 
-        {/* Reset Data Button
-        <button
-          onClick={handleClearData}
-          className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
-        >
-          Reset All Data
-        </button> */}
-
         {schema && schema.length > 0 ? (
           <p className="text-center text-green-600 mt-3">
             A saved schema was loaded for review.
@@ -187,11 +200,10 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
       </header>
 
       <main className="flex-grow max-w-7xl mx-auto p-6 flex flex-col w-full">
-        {/* Render SchemaContent if schema exists */}
         {schema && schema.length > 0 ? (
           <section className="bg-white p-6 shadow rounded-lg">
             <SchemaContent
-              currentHeaders={colDefs || undefined} // Convert `null` to `undefined`
+              currentHeaders={colDefs || undefined}
               list={schema || []}
               handleDelete={(id) =>
                 setSchema(schema?.filter((item) => item.id !== id) || [])
@@ -212,7 +224,7 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
                 setColDefs(
                   newHeaderArray.map((header) => ({
                     ...header,
-                    field: header.field ?? "", // Ensure `field` is a string
+                    field: header.field ?? "",
                   }))
                 );
 
@@ -224,7 +236,6 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
           </section>
         )}
 
-        {/* Render AGGrid if rowData and colDefs exist */}
         {rowData && colDefs && (
           <section className="bg-white mt-8 p-6 shadow rounded-lg flex-grow w-full">
             <div className="w-full">

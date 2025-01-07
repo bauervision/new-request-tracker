@@ -23,14 +23,6 @@ interface DataFieldProps {
   handleDateFormatChange: (index: number, format: string) => void; // Callback for date format change
 }
 
-const dataTypes = [
-  { value: FIELD_TYPES.NUMBER, label: "Integer" },
-  { value: FIELD_TYPES.TEXT, label: "String" },
-  { value: FIELD_TYPES.DATE, label: "Date" },
-  { value: FIELD_TYPES.FLOAT, label: "Float" },
-  { value: FIELD_TYPES.BOOLEAN, label: "Boolean" },
-];
-
 const DATE_FORMAT_OPTIONS = [
   "MM/DD/YYYY",
   "DD/MM/YYYY",
@@ -50,6 +42,12 @@ export const DataField: React.FC<DataFieldProps> = ({
   selectedFormat,
   handleDateFormatChange,
 }) => {
+  // Dynamically generate the data type options from FIELD_TYPES
+  const dataTypes = Object.entries(FIELD_TYPES).map(([key, value]) => ({
+    value,
+    label: key.charAt(0).toUpperCase() + key.slice(1).toLowerCase(),
+  }));
+
   return (
     <div className="p-3 w-full bg-slate-100 my-2 rounded-md">
       <form onSubmit={handleSubmit}>
@@ -65,7 +63,7 @@ export const DataField: React.FC<DataFieldProps> = ({
           {/* Type Dropdown */}
           <Select
             onValueChange={(value) => setNewValue(value, index)}
-            value={dataType} // Use "string" as the default type in schema
+            value={dataType} // Use the currently selected type
           >
             <SelectTrigger className="w-1/4">
               <SelectValue>

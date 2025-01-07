@@ -31,7 +31,7 @@ function RequestPage() {
             className="bg-blue-800 text-white"
             variant={"outline"}
           >
-            <a>New Request</a>
+            <p>New Request</p>
           </Button>
         </Link>,
         selectedRow && <RequestDialog />,
