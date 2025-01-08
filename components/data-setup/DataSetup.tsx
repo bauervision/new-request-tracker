@@ -100,7 +100,8 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
       console.log("No Schema found");
       return;
     }
-    alert("Saving Dataset...");
+    localStorage.setItem("savedSchema", JSON.stringify(schema));
+    alert("Schema saved successfully!");
   };
 
   const handleClearData = () => {

@@ -1,32 +1,21 @@
 "use client";
 
-import {
+import React, {
   createContext,
   useContext,
   useState,
   useEffect,
   ReactNode,
 } from "react";
-import {
-  Toast,
-  ToastProvider,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-  ToastViewport,
-  ShadcnToastProps,
-} from "@/components/ui/toast";
-
-import { RowData } from "@/components/ag-grid-table/GridTable";
-import { rawData } from "@/components/ag-grid-table/data";
+import { useSchema, SchemaItem } from "@/app/context/SchemaContext";
 
 interface RequestContextType {
-  data: RowData[];
-  selectedRow: RowData | null;
-  setRowData: (data: RowData[]) => void;
-  selectRow: (row: RowData) => void;
-  addRow: (row: RowData) => void;
-  updateRow: (index: number, row: RowData) => void;
+  data: Record<string, any>[]; // Match rowData from SchemaContext
+  selectedRow: Record<string, any> | null;
+  setRowData: (data: Record<string, any>[]) => void;
+  selectRow: (row: Record<string, any>) => void;
+  addRow: (row: Record<string, any>) => void;
+  updateRow: (index: number, row: Record<string, any>) => void;
   deleteRow: (index: number) => void;
 }
 
@@ -40,33 +29,43 @@ const RequestContext = createContext<RequestContextType>({
   deleteRow: () => {},
 });
 
-export const RequestProvider = ({
+export const RequestProvider: React.FC<{ children: ReactNode }> = ({
   children,
-}: Readonly<{ children: React.ReactNode }>) => {
-  const [data, setRowData] = useState<RowData[]>([]);
-  const [selectedRow, setSelectedRow] = useState<RowData | null>(null);
+}) => {
+  const { rowData, setRowData } = useSchema(); // Use rowData from SchemaContext
+  const [data, setLocalRowData] = useState<Record<string, any>[]>(
+    rowData || []
+  );
+  const [selectedRow, setSelectedRow] = useState<Record<string, any> | null>(
+    null
+  );
 
-  // Load initial data
   useEffect(() => {
-    const initialData: RowData[] = rawData;
-    setRowData(initialData);
-  }, []);
+    // Keep local data in sync with SchemaContext's rowData
+    if (rowData) {
+      setLocalRowData(rowData);
+    }
+  }, [rowData]);
 
-  const addRow = (row: RowData) => {
-    setRowData((prevData) => [...prevData, row]);
+  const addRow = (row: Record<string, any>) => {
+    const updatedData = [...data, row];
+    setLocalRowData(updatedData);
+    setRowData(updatedData); // Update in SchemaContext
   };
 
-  const updateRow = (index: number, updatedRow: RowData) => {
-    setRowData((prevData) =>
-      prevData.map((row, i) => (i === index ? updatedRow : row))
-    );
+  const updateRow = (index: number, updatedRow: Record<string, any>) => {
+    const updatedData = data.map((row, i) => (i === index ? updatedRow : row));
+    setLocalRowData(updatedData);
+    setRowData(updatedData); // Update in SchemaContext
   };
 
   const deleteRow = (index: number) => {
-    setRowData((prevData) => prevData.filter((_, i) => i !== index));
+    const updatedData = data.filter((_, i) => i !== index);
+    setLocalRowData(updatedData);
+    setRowData(updatedData); // Update in SchemaContext
   };
 
-  const selectRow = (row: RowData) => {
+  const selectRow = (row: Record<string, any>) => {
     setSelectedRow(row);
   };
 
@@ -75,7 +74,7 @@ export const RequestProvider = ({
       value={{
         data,
         selectedRow,
-        setRowData,
+        setRowData: setLocalRowData,
         addRow,
         updateRow,
         deleteRow,
@@ -90,6 +89,15 @@ export const RequestProvider = ({
 export const useRequestContext = () => useContext(RequestContext);
 
 /// TOAST
+import {
+  Toast,
+  ToastProvider,
+  ToastTitle,
+  ToastDescription,
+  ToastClose,
+  ToastViewport,
+  ShadcnToastProps,
+} from "@/components/ui/toast";
 
 interface ToastContextProps {
   addToast: (toast: ShadcnToastProps) => number;

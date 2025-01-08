@@ -51,9 +51,32 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     const savedRowData = localStorage.getItem(ROW_DATA_STORAGE_KEY);
     const savedColDefs = localStorage.getItem(COL_DEFS_STORAGE_KEY);
 
-    if (savedSchema) setSchemaState(JSON.parse(savedSchema));
-    if (savedRowData) setRowDataState(JSON.parse(savedRowData));
-    if (savedColDefs) setColDefsState(JSON.parse(savedColDefs));
+    if (savedSchema) {
+      const parsedSchema = JSON.parse(savedSchema);
+      setSchemaState(parsedSchema);
+
+      // Generate colDefs from schema
+      const updatedColDefs = parsedSchema.map((item: SchemaItem) => ({
+        field: item.parameter || "",
+        filter:
+          item.type === "DATE"
+            ? "agDateColumnFilter"
+            : item.type === "NUMBER" ||
+              item.type === "FLOAT" ||
+              item.type === "CURRENCY"
+            ? "agNumberColumnFilter"
+            : "agTextColumnFilter",
+      }));
+      setColDefsState(updatedColDefs);
+    }
+
+    if (savedRowData) {
+      setRowDataState(JSON.parse(savedRowData));
+    }
+
+    if (savedColDefs) {
+      setColDefsState(JSON.parse(savedColDefs));
+    }
   }, []);
 
   // Save to localStorage whenever state changes
@@ -76,7 +99,6 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     else localStorage.removeItem(COL_DEFS_STORAGE_KEY);
   };
 
-  // Method to clear all local data
   const clearLocalData = () => {
     localStorage.removeItem(SCHEMA_STORAGE_KEY);
     localStorage.removeItem(ROW_DATA_STORAGE_KEY);
