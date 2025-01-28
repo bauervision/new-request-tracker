@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSchema } from "@/app/context/SchemaContext";
-import { useWorkflow } from "@/app/context/WorkflowContext"; // Import WorkflowContext
+import { useWorkflow } from "@/app/context/WorkflowContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,13 +19,46 @@ import { handleLinkClick } from "@/app/utils/trackLinkClicks";
 
 const OrderRequestForm = () => {
   const { schema, rowData, setRowData } = useSchema();
-  const { savedWorkflows, currentWorkflowName, setCurrentWorkflowName } =
-    useWorkflow();
+  const {
+    state,
+    savedWorkflows,
+    currentWorkflowName,
+    setCurrentWorkflowName,
+    loadWorkflow,
+  } = useWorkflow();
+
   const [formValues, setFormValues] = useState<{ [key: string]: any }>({});
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [workflowSteps, setWorkflowSteps] = useState<string[]>([]);
 
-  // Debugging: Log the schema to verify structure
-  console.log("Schema:", schema);
+  // Handle workflow selection
+  const handleWorkflowChange = (workflowName: string) => {
+    setCurrentWorkflowName(workflowName);
+    loadWorkflow(workflowName);
+
+    // Extract steps from the workflow state
+    if (state.rootItem) {
+      const steps = extractWorkflowSteps(state.rootItem);
+      setWorkflowSteps(steps);
+    } else {
+      setWorkflowSteps([]);
+    }
+  };
+
+  // Extract workflow steps recursively
+  const extractWorkflowSteps = (
+    itemId: string,
+    steps: string[] = []
+  ): string[] => {
+    const item = state.items[itemId];
+    if (!item) return steps;
+
+    steps.push(item.name); // Add the current item's name
+
+    // Recursively process children
+    item.children.forEach((childId) => extractWorkflowSteps(childId, steps));
+    return steps;
+  };
 
   // Handle input changes
   const handleInputChange = (field: string, value: any) => {
@@ -79,20 +112,40 @@ const OrderRequestForm = () => {
               Select Workflow
             </Label>
             <Select
-              onValueChange={(value) => setCurrentWorkflowName(value)}
-              value={currentWorkflowName}
+              onValueChange={handleWorkflowChange}
+              value={currentWorkflowName || ""} // Default to empty string
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a workflow" />
               </SelectTrigger>
               <SelectContent>
-                {savedWorkflows.map((workflow) => (
-                  <SelectItem key={workflow} value={workflow}>
-                    {workflow}
+                {/* Default "Select a Workflow" option */}
+                <SelectItem value="" disabled>
+                  Select a Workflow
+                </SelectItem>
+                {savedWorkflows.map((workflowName) => (
+                  <SelectItem key={workflowName} value={workflowName}>
+                    {workflowName}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Workflow Steps Preview */}
+            {workflowSteps.length > 0 && (
+              <div className="mt-4 p-4 bg-gray-100 rounded-md">
+                <h3 className="font-medium text-sm mb-2">
+                  Steps in Selected Workflow:
+                </h3>
+                <ul className="list-disc pl-5">
+                  {workflowSteps.map((step, index) => (
+                    <li key={index} className="text-sm text-gray-700">
+                      {step}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         ) : (
           <Link
@@ -127,75 +180,14 @@ const OrderRequestForm = () => {
                 placeholder={`Enter ${field.parameter}`}
               />
             )}
-            {field.type === FIELD_TYPES.NUMBER && (
-              <Input
-                type="number"
-                id={field.parameter}
-                value={formValues[field.parameter] || ""}
-                onChange={(e) =>
-                  handleInputChange(
-                    field.parameter,
-                    parseInt(e.target.value, 10)
-                  )
-                }
-                placeholder={`Enter ${field.parameter}`}
-              />
-            )}
-            {field.type === FIELD_TYPES.FLOAT && (
-              <Input
-                type="number"
-                step="0.01"
-                id={field.parameter}
-                value={formValues[field.parameter] || ""}
-                onChange={(e) =>
-                  handleInputChange(field.parameter, parseFloat(e.target.value))
-                }
-                placeholder={`Enter ${field.parameter}`}
-              />
-            )}
-            {field.type === FIELD_TYPES.BOOLEAN && (
-              <Select
-                onValueChange={(value) =>
-                  handleInputChange(field.parameter, value === "true")
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a value" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="true">True</SelectItem>
-                  <SelectItem value="false">False</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-            {field.type === FIELD_TYPES.DATE && (
-              <Input
-                type="date"
-                id={field.parameter}
-                value={formValues[field.parameter] || ""}
-                onChange={(e) =>
-                  handleInputChange(field.parameter, e.target.value)
-                }
-              />
-            )}
-            {field.type === FIELD_TYPES.CURRENCY && (
-              <Input
-                type="number"
-                step="0.01"
-                id={field.parameter}
-                value={formValues[field.parameter] || ""}
-                onChange={(e) =>
-                  handleInputChange(field.parameter, parseFloat(e.target.value))
-                }
-                placeholder={`Enter ${field.parameter}`}
-              />
-            )}
+            {/* Additional field types */}
           </div>
         ))}
         <Button type="submit" className="w-full">
           Submit
         </Button>
       </form>
+
       {formSubmitted && (
         <p className="text-green-500 mt-4">
           Order request successfully submitted!

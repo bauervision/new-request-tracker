@@ -7,6 +7,7 @@ import React, {
   ReactNode,
   useEffect,
 } from "react";
+import { useWorkflow } from "@/app/context/WorkflowContext";
 
 // Define SchemaItem and other types
 export interface SchemaItem {
@@ -30,6 +31,7 @@ export interface SchemaContextType {
   colDefs: ColDef[] | null;
   setColDefs: (defs: ColDef[] | null) => void;
   clearLocalData: () => void;
+  getRequestStatus: (workflowName: string) => number | null;
 }
 
 const SCHEMA_STORAGE_KEY = "schema_data";
@@ -44,6 +46,8 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
   const [schema, setSchemaState] = useState<Schema | null>(null);
   const [rowData, setRowDataState] = useState<any[] | null>(null);
   const [colDefs, setColDefsState] = useState<ColDef[] | null>(null);
+
+  const { state: workflowState, currentWorkflowName } = useWorkflow();
 
   // Load saved data from localStorage on mount
   useEffect(() => {
@@ -79,11 +83,33 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
+  // Add the "Request Status" field to the schema
+  const addRequestStatusField = (currentSchema: Schema | null): Schema => {
+    const requestStatusField: SchemaItem = {
+      id: Date.now(), // Generate a unique ID
+      type: "NUMBER", // Always interpret as a number
+      parameter: "Request Status", // Field name
+    };
+
+    // Ensure "Request Status" is not already in the schema
+    const existingField = currentSchema?.find(
+      (field) => field.parameter === "Request Status"
+    );
+
+    if (!existingField) {
+      return [...(currentSchema || []), requestStatusField];
+    }
+    return currentSchema || [];
+  };
+
   // Save to localStorage whenever state changes
   const setSchema = (newSchema: Schema | null) => {
-    setSchemaState(newSchema);
-    if (newSchema)
-      localStorage.setItem(SCHEMA_STORAGE_KEY, JSON.stringify(newSchema));
+    // Add the "Request Status" field
+    const updatedSchema = addRequestStatusField(newSchema);
+    setSchemaState(updatedSchema);
+
+    if (updatedSchema)
+      localStorage.setItem(SCHEMA_STORAGE_KEY, JSON.stringify(updatedSchema));
     else localStorage.removeItem(SCHEMA_STORAGE_KEY);
   };
 
@@ -109,6 +135,36 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     console.log("Local data cleared.");
   };
 
+  // Dynamically fetch the Request Status from the workflow
+  const getRequestStatus = (workflowName: string): number | null => {
+    if (!workflowState || !workflowState.items || !workflowState.rootItem) {
+      return null;
+    }
+
+    const rootItem = workflowState.items[workflowState.rootItem];
+    if (!rootItem) return null;
+
+    // Find the index of the current workflow name
+    const steps = extractWorkflowSteps(workflowState.rootItem);
+    const statusIndex = steps.findIndex((step) => step === workflowName);
+    return statusIndex !== -1 ? statusIndex : null;
+  };
+
+  // Recursive helper to extract workflow steps
+  const extractWorkflowSteps = (
+    itemId: string,
+    steps: string[] = []
+  ): string[] => {
+    const item = workflowState.items[itemId];
+    if (!item) return steps;
+
+    steps.push(item.name); // Add the current item's name
+
+    // Recursively process children
+    item.children.forEach((childId) => extractWorkflowSteps(childId, steps));
+    return steps;
+  };
+
   return (
     <SchemaContext.Provider
       value={{
@@ -119,6 +175,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
         colDefs,
         setColDefs,
         clearLocalData,
+        getRequestStatus,
       }}
     >
       {children}

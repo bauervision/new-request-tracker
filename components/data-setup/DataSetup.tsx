@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import { ColDef } from "ag-grid-community";
 
 import { SchemaContent } from "./SchemaContent";
@@ -8,27 +8,40 @@ import { CSVParser } from "./CSVParser";
 import { AGGrid } from "./AGGrid";
 import { useSchema } from "@/app/context/SchemaContext";
 import { FIELD_TYPES } from "@/app/constants";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
-interface DataSetupProps {
-  myData?: {
-    id: string;
-    data?: any[];
-    headers?: any[];
-    schema?: SchemaItem[];
-  } | null;
-}
+const DATE_FORMAT_OPTIONS = [
+  "MM/DD/YYYY",
+  "DD/MM/YYYY",
+  "YYYY-MM-DD",
+  "MMM DD, YYYY",
+];
+
+const FIELD_TYPES_OPTIONS = [
+  { value: FIELD_TYPES.TEXT, label: "Text" },
+  { value: FIELD_TYPES.NUMBER, label: "Number" },
+  { value: FIELD_TYPES.FLOAT, label: "Float" },
+  { value: FIELD_TYPES.CURRENCY, label: "Currency" },
+  { value: FIELD_TYPES.DATE, label: "Date" },
+  { value: FIELD_TYPES.BOOLEAN, label: "Boolean" },
+];
 
 interface SchemaItem {
   id: number;
   type: string;
   parameter: string;
+  format?: string;
 }
 
-interface StrictColDef extends Omit<ColDef<any, any>, "field"> {
-  field: string; // Ensure the field is strictly a string
-}
-
-const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
+const DataSetup: React.FC = () => {
   const {
     schema,
     setSchema,
@@ -39,148 +52,46 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
     clearLocalData,
   } = useSchema();
 
-  useEffect(() => {
-    if (schema && schema.length > 0) {
-      const updatedColDefs = schema.map((item) => {
-        const colDef: StrictColDef = {
-          field: item.parameter || "",
-          filter:
-            item.type === FIELD_TYPES.DATE
-              ? "agDateColumnFilter"
-              : item.type === FIELD_TYPES.NUMBER ||
-                item.type === FIELD_TYPES.FLOAT ||
-                item.type === FIELD_TYPES.CURRENCY
-              ? "agNumberColumnFilter"
-              : "agTextColumnFilter",
-          ...(item.type === FIELD_TYPES.DATE && {
-            filterParams: {
-              comparator: (filterDate: Date, cellValue: string) => {
-                if (!cellValue) return -1; // Treat empty cells as unmatched
+  const [mode, setMode] = useState<"csv" | "manual">("csv");
+  const [manualSchema, setManualSchema] = useState<SchemaItem[]>([]);
 
-                const [datePart] = cellValue.split(" ");
-                const cellDate = new Date(datePart);
+  const handleAddField = () => {
+    const newField: SchemaItem = {
+      id: Date.now(),
+      type: FIELD_TYPES.TEXT, // Default type
+      parameter: "", // Default empty parameter
+    };
+    setManualSchema((prev) => [...prev, newField]);
+  };
 
-                if (isNaN(cellDate.getTime())) return -1;
+  const handleRemoveField = (id: number) => {
+    setManualSchema((prev) => prev.filter((field) => field.id !== id));
+  };
 
-                if (filterDate.getTime() === cellDate.getTime()) return 0;
-                return filterDate.getTime() > cellDate.getTime() ? -1 : 1;
-              },
-              browserDatePicker: true,
-            },
-          }),
-          ...(item.type === FIELD_TYPES.NUMBER ||
-          item.type === FIELD_TYPES.FLOAT ||
-          item.type === FIELD_TYPES.CURRENCY
-            ? {
-                comparator: (valueA: any, valueB: any) =>
-                  Number(valueA) - Number(valueB), // Numeric sorting
-              }
-            : {}),
-          ...(item.type === FIELD_TYPES.CURRENCY && {
-            valueFormatter: (params) =>
-              params.value
-                ? new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                  }).format(params.value)
-                : "",
-          }),
-        };
-        return colDef;
-      });
+  const handleUpdateField = (
+    id: number,
+    key: keyof SchemaItem,
+    value: string
+  ) => {
+    setManualSchema((prev) =>
+      prev.map((field) =>
+        field.id === id ? { ...field, [key]: value } : field
+      )
+    );
+  };
 
-      if (JSON.stringify(colDefs) !== JSON.stringify(updatedColDefs)) {
-        setColDefs(updatedColDefs);
-      }
-    }
-  }, [schema, colDefs, setColDefs]);
-
-  const handleSavingDataset = () => {
-    if (!schema || schema.length === 0) {
-      console.log("No Schema found");
-      return;
-    }
-    localStorage.setItem("savedSchema", JSON.stringify(schema));
+  const handleSaveManualSchema = () => {
+    setSchema(manualSchema);
     alert("Schema saved successfully!");
   };
 
-  const handleClearData = () => {
-    clearLocalData();
+  const handleModeChange = (newMode: "csv" | "manual") => {
+    if (newMode === "csv") {
+      // Clear the manual schema and reset inputs
+      setManualSchema([]); // Clear manualSchema state
+    }
+    setMode(newMode); // Switch mode
   };
-
-  const handleHeaderUpdateType = (
-    newSchemaArray: SchemaItem[],
-    updatedIndex: number
-  ) => {
-    setSchema(newSchemaArray);
-
-    const updatedColDefs = newSchemaArray.map((item) => {
-      const colDef: StrictColDef = {
-        field: item.parameter || "",
-        filter:
-          item.type === FIELD_TYPES.DATE
-            ? "agDateColumnFilter"
-            : item.type === FIELD_TYPES.NUMBER ||
-              item.type === FIELD_TYPES.FLOAT ||
-              item.type === FIELD_TYPES.CURRENCY
-            ? "agNumberColumnFilter"
-            : "agTextColumnFilter",
-        ...(item.type === FIELD_TYPES.DATE && {
-          filterParams: {
-            comparator: (filterDate: Date, cellValue: string) => {
-              if (!cellValue) return -1;
-
-              const [datePart] = cellValue.split(" ");
-              const cellDate = new Date(datePart);
-
-              if (isNaN(cellDate.getTime())) return -1;
-
-              if (filterDate.getTime() === cellDate.getTime()) return 0;
-              return filterDate.getTime() > cellDate.getTime() ? -1 : 1;
-            },
-            browserDatePicker: true,
-          },
-        }),
-        ...(item.type === FIELD_TYPES.NUMBER ||
-        item.type === FIELD_TYPES.FLOAT ||
-        item.type === FIELD_TYPES.CURRENCY
-          ? {
-              comparator: (valueA: any, valueB: any) =>
-                Number(valueA) - Number(valueB),
-            }
-          : {}),
-        ...(item.type === FIELD_TYPES.CURRENCY && {
-          valueFormatter: (params) =>
-            params.value
-              ? new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                }).format(params.value)
-              : "",
-        }),
-      };
-      return colDef;
-    });
-
-    setColDefs(updatedColDefs);
-  };
-
-  const handleHeaderUpdateParameter = (
-    updatedParameters: Partial<SchemaItem>[],
-    index: number
-  ) => {
-    if (!schema) return;
-
-    const updatedSchema = schema.map((item, idx) =>
-      idx === index ? { ...item, ...updatedParameters[index] } : item
-    );
-
-    setSchema(updatedSchema);
-  };
-
-  useEffect(() => {
-    console.log("Schema updated:", schema);
-  }, [schema]);
 
   return (
     <div className="bg-gray-100 w-full flex flex-col h-full">
@@ -189,65 +100,168 @@ const DataSetup: React.FC<DataSetupProps> = ({ myData }) => {
           Catēna Data Configuration
         </h2>
 
-        {schema && schema.length > 0 ? (
-          <p className="text-center text-green-600 mt-3">
-            A saved schema was loaded for review.
-          </p>
-        ) : (
-          <p className="text-center text-red-600 mt-3">
-            No saved schema found. Please upload or create a new one.
-          </p>
-        )}
+        {/* Toggle Mode */}
+        <div className="flex justify-center mt-4 gap-4">
+          <Button
+            className={
+              mode === "csv" ? "bg-blue-600 text-white" : "bg-gray-200"
+            }
+            onClick={() => handleModeChange("csv")}
+          >
+            Upload CSV
+          </Button>
+          <Button
+            className={
+              mode === "manual" ? "bg-blue-600 text-white" : "bg-gray-200"
+            }
+            onClick={() => handleModeChange("manual")}
+          >
+            Create Schema from Scratch
+          </Button>
+        </div>
       </header>
 
       <main className="flex-grow max-w-7xl mx-auto p-6 flex flex-col w-full">
-        {schema && schema.length > 0 ? (
-          <section className="bg-white p-6 shadow rounded-lg">
-            <SchemaContent
-              currentHeaders={colDefs || undefined}
-              list={schema || []}
-              handleDelete={(id) =>
-                setSchema(schema?.filter((item) => item.id !== id) || [])
-              }
-              handleSavingDataset={handleSavingDataset}
-              handleHeaderUpdateType={handleHeaderUpdateType}
-              handleHeaderUpdateParameter={handleHeaderUpdateParameter}
-            />
-          </section>
-        ) : (
+        {mode === "csv" && (
           <section className="bg-white p-6 shadow rounded-lg">
             <CSVParser
               saveParsedData={(rows, data) => setRowData(data)}
-              setHeaders={(rows, schemaArray) => {
-                const newHeaderArray: ColDef[] = rows.map((row) => ({
-                  field: row,
-                }));
-                setColDefs(
-                  newHeaderArray.map((header) => ({
-                    ...header,
-                    field: header.field ?? "",
-                  }))
-                );
-
-                setSchema(schemaArray);
-              }}
+              setHeaders={(rows, schemaArray) => setSchema(schemaArray)}
               handleDataCreation={setRowData}
               setSchema={setSchema}
             />
           </section>
         )}
 
-        {rowData && colDefs && (
-          <section className="bg-white mt-8 p-6 shadow rounded-lg flex-grow w-full">
-            <div className="w-full">
-              <AGGrid
-                rows={rowData}
-                columns={colDefs}
-                setHeight="600px"
-                paginate={true}
-              />
-            </div>
-          </section>
+        {mode === "manual" ? (
+          <>
+            <section className="bg-white p-6 shadow rounded-lg">
+              <h3 className="text-lg font-semibold mb-4">Define Schema</h3>
+              <div className="space-y-4">
+                {manualSchema.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="flex items-center gap-4 w-full"
+                  >
+                    {/* Parameter Name Input */}
+                    <Input
+                      className="flex-grow"
+                      placeholder="Field Name"
+                      value={field.parameter}
+                      onChange={(e) =>
+                        handleUpdateField(field.id, "parameter", e.target.value)
+                      }
+                    />
+
+                    {/* Type Dropdown */}
+                    <Select
+                      onValueChange={(value) =>
+                        handleUpdateField(field.id, "type", value)
+                      }
+                      value={field.type}
+                    >
+                      <SelectTrigger className="w-1/4">
+                        <SelectValue placeholder="Select Type">
+                          {FIELD_TYPES_OPTIONS.find(
+                            (type) => type.value === field.type
+                          )?.label || "Select Type"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FIELD_TYPES_OPTIONS.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Conditional Date Format Dropdown */}
+                    {field.type === FIELD_TYPES.DATE && (
+                      <div className="ml-3">
+                        <select
+                          className="form-select"
+                          value={field.format || ""}
+                          onChange={(e) =>
+                            handleUpdateField(
+                              field.id,
+                              "format",
+                              e.target.value
+                            )
+                          }
+                        >
+                          <option value="" disabled>
+                            Select Date Format
+                          </option>
+                          {DATE_FORMAT_OPTIONS.map((format) => (
+                            <option key={format} value={format}>
+                              {format}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Delete Button */}
+                    <Button
+                      variant="outline"
+                      onClick={() => handleRemoveField(field.id)}
+                      type="button"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-4 mt-4">
+                <Button
+                  onClick={handleAddField}
+                  className="bg-green-600 text-white px-4 py-2 rounded"
+                >
+                  Add Field
+                </Button>
+                <Button
+                  onClick={handleSaveManualSchema}
+                  className="bg-blue-600 text-white px-4 py-2 rounded"
+                >
+                  Save Schema
+                </Button>
+              </div>
+            </section>
+          </>
+        ) : (
+          <>
+            {/* Schema and Data Table */}
+            {schema && schema.length > 0 && (
+              <section className="bg-white p-6 shadow rounded-lg mt-8">
+                <SchemaContent
+                  currentHeaders={colDefs || undefined}
+                  list={
+                    schema?.filter(
+                      (item) => item.parameter !== "Request Status"
+                    ) || []
+                  }
+                  handleDelete={(id) =>
+                    setSchema(schema?.filter((item) => item.id !== id) || [])
+                  }
+                  handleSavingDataset={() => alert("Schema saved!")}
+                  handleHeaderUpdateType={() => {}}
+                  handleHeaderUpdateParameter={() => {}}
+                />
+              </section>
+            )}
+
+            {rowData && colDefs && (
+              <section className="bg-white mt-8 p-6 shadow rounded-lg flex-grow w-full">
+                <AGGrid
+                  rows={rowData}
+                  columns={colDefs}
+                  setHeight="600px"
+                  paginate={true}
+                />
+              </section>
+            )}
+          </>
         )}
       </main>
     </div>
