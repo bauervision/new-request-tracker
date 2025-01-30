@@ -11,12 +11,13 @@ export default function Home() {
   const { setUser } = useUser();
   const { clearLocalData } = useSchema();
   const [links, setLinks] = useState<string[]>([]);
-  useEffect(() => {
-    clearLinkClicks(); // Clear the link clicks when the component mounts
-    setLinks(getFrequentLinks());
-    localStorage.clear();
-    clearLocalData();
-  }, []);
+
+  // useEffect(() => {
+  //   clearLinkClicks(); // Clear the link clicks when the component mounts
+  //   setLinks(getFrequentLinks());
+  //   localStorage.clear();
+  //   clearLocalData();
+  // }, []);
 
   return (
     <div>

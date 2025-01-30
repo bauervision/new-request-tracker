@@ -14,12 +14,16 @@ export interface SchemaItem {
   id: number;
   type: string;
   parameter: string;
+  format?: string; // optional property
 }
 
 export type Schema = SchemaItem[];
 
 export interface ColDef {
   field: string;
+  filter?: string;
+  comparator?: (valueA: any, valueB: any) => number;
+  valueFormatter?: (params: any) => string;
   [key: string]: any;
 }
 
@@ -58,20 +62,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     if (savedSchema) {
       const parsedSchema = JSON.parse(savedSchema);
       setSchemaState(parsedSchema);
-
-      // Generate colDefs from schema
-      const updatedColDefs = parsedSchema.map((item: SchemaItem) => ({
-        field: item.parameter || "",
-        filter:
-          item.type === "DATE"
-            ? "agDateColumnFilter"
-            : item.type === "NUMBER" ||
-              item.type === "FLOAT" ||
-              item.type === "CURRENCY"
-            ? "agNumberColumnFilter"
-            : "agTextColumnFilter",
-      }));
-      setColDefsState(updatedColDefs);
+      updateColDefs(parsedSchema);
     }
 
     if (savedRowData) {
@@ -83,7 +74,7 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
-  // Add the "Request Status" field to the schema
+  // Add "Request Status" field to the schema
   const addRequestStatusField = (currentSchema: Schema | null): Schema => {
     const requestStatusField: SchemaItem = {
       id: Date.now(), // Generate a unique ID
@@ -91,7 +82,6 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
       parameter: "Request Status", // Field name
     };
 
-    // Ensure "Request Status" is not already in the schema
     const existingField = currentSchema?.find(
       (field) => field.parameter === "Request Status"
     );
@@ -102,15 +92,51 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     return currentSchema || [];
   };
 
-  // Save to localStorage whenever state changes
+  // Generate column definitions from the schema
+  const updateColDefs = (newSchema: Schema | null) => {
+    if (!newSchema) {
+      setColDefsState(null);
+      localStorage.removeItem(COL_DEFS_STORAGE_KEY);
+      return;
+    }
+
+    const updatedColDefs: ColDef[] = newSchema.map((item) => ({
+      field: item.parameter || "",
+      filter:
+        item.type === "DATE"
+          ? "agDateColumnFilter"
+          : item.type === "NUMBER" ||
+            item.type === "FLOAT" ||
+            item.type === "CURRENCY"
+          ? "agNumberColumnFilter"
+          : "agTextColumnFilter",
+      ...(item.type === "CURRENCY" && {
+        valueFormatter: (params) =>
+          params.value
+            ? new Intl.NumberFormat("en-US", {
+                style: "currency",
+                currency: "USD",
+              }).format(params.value)
+            : "",
+      }),
+    }));
+
+    setColDefsState(updatedColDefs);
+    localStorage.setItem(COL_DEFS_STORAGE_KEY, JSON.stringify(updatedColDefs));
+  };
+
+  // Save schema & update colDefs
   const setSchema = (newSchema: Schema | null) => {
-    // Add the "Request Status" field
     const updatedSchema = addRequestStatusField(newSchema);
     setSchemaState(updatedSchema);
 
-    if (updatedSchema)
+    if (updatedSchema) {
       localStorage.setItem(SCHEMA_STORAGE_KEY, JSON.stringify(updatedSchema));
-    else localStorage.removeItem(SCHEMA_STORAGE_KEY);
+      updateColDefs(updatedSchema); // Ensure colDefs are updated
+    } else {
+      localStorage.removeItem(SCHEMA_STORAGE_KEY);
+      setColDefsState(null);
+    }
   };
 
   const setRowData = (data: any[] | null) => {
@@ -164,6 +190,13 @@ export const SchemaProvider: React.FC<{ children: ReactNode }> = ({
     item.children.forEach((childId) => extractWorkflowSteps(childId, steps));
     return steps;
   };
+
+  // Automatically update colDefs when schema changes
+  useEffect(() => {
+    if (schema) {
+      updateColDefs(schema);
+    }
+  }, [schema]);
 
   return (
     <SchemaContext.Provider

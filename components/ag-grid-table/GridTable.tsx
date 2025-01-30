@@ -41,7 +41,7 @@ const GridTable = () => {
       className="ag-theme-quartz mx-auto"
       style={{ width: "90%", height: "500px" }}
     >
-      {!colDefs || !rowData ? (
+      {!colDefs /*|| !rowData*/ ? (
         <div className="flex flex-col justify-center items-center h-full">
           <Link href="request-tracker/admin/data-management">
             <Button className="bg-blue-800 text-white">

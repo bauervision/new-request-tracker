@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ColDef } from "ag-grid-community";
 
 import { SchemaContent } from "./SchemaContent";
@@ -82,6 +82,7 @@ const DataSetup: React.FC = () => {
 
   const handleSaveManualSchema = () => {
     setSchema(manualSchema);
+
     alert("Schema saved successfully!");
   };
 
@@ -92,6 +93,11 @@ const DataSetup: React.FC = () => {
     }
     setMode(newMode); // Switch mode
   };
+
+  useEffect(() => {
+    // Log schema when component mounts or updates
+    console.log("Current Schema:", schema);
+  }, [schema]);
 
   return (
     <div className="bg-gray-100 w-full flex flex-col h-full">
@@ -122,17 +128,6 @@ const DataSetup: React.FC = () => {
       </header>
 
       <main className="flex-grow max-w-7xl mx-auto p-6 flex flex-col w-full">
-        {mode === "csv" && (
-          <section className="bg-white p-6 shadow rounded-lg">
-            <CSVParser
-              saveParsedData={(rows, data) => setRowData(data)}
-              setHeaders={(rows, schemaArray) => setSchema(schemaArray)}
-              handleDataCreation={setRowData}
-              setSchema={setSchema}
-            />
-          </section>
-        )}
-
         {mode === "manual" ? (
           <>
             <section className="bg-white p-6 shadow rounded-lg">
@@ -231,24 +226,35 @@ const DataSetup: React.FC = () => {
           </>
         ) : (
           <>
+            <section className="bg-white p-6 shadow rounded-lg">
+              <CSVParser
+                saveParsedData={(rows, data) => setRowData(data)}
+                setHeaders={(rows, schemaArray) => setSchema(schemaArray)}
+                handleDataCreation={setRowData}
+                setSchema={setSchema}
+              />
+            </section>
+
             {/* Schema and Data Table */}
             {schema && schema.length > 0 && (
-              <section className="bg-white p-6 shadow rounded-lg mt-8">
-                <SchemaContent
-                  currentHeaders={colDefs || undefined}
-                  list={
-                    schema?.filter(
-                      (item) => item.parameter !== "Request Status"
-                    ) || []
-                  }
-                  handleDelete={(id) =>
-                    setSchema(schema?.filter((item) => item.id !== id) || [])
-                  }
-                  handleSavingDataset={() => alert("Schema saved!")}
-                  handleHeaderUpdateType={() => {}}
-                  handleHeaderUpdateParameter={() => {}}
-                />
-              </section>
+              <>
+                <section className="bg-white p-6 shadow rounded-lg mt-8">
+                  <SchemaContent
+                    currentHeaders={colDefs || undefined}
+                    list={
+                      schema?.filter(
+                        (item) => item.parameter !== "Request Status"
+                      ) || []
+                    }
+                    handleDelete={(id) =>
+                      setSchema(schema?.filter((item) => item.id !== id) || [])
+                    }
+                    handleSavingDataset={() => alert("Schema saved!")}
+                    handleHeaderUpdateType={() => {}}
+                    handleHeaderUpdateParameter={() => {}}
+                  />
+                </section>
+              </>
             )}
 
             {rowData && colDefs && (
